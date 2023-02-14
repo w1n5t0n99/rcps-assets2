@@ -47,7 +47,7 @@ impl MigrationTrait for Migration {
         }
 
         roles_permissions::ActiveModel {
-            perm_id: Set("user_view".to_string()),
+            perm_id: Set("item_view".to_string()),
             role_id: Set("inactive".to_string())
         }
         .insert(&transaction)
@@ -57,24 +57,9 @@ impl MigrationTrait for Migration {
 
        Ok(())
     }
-}
 
-/// Learn more at https://docs.rs/sea-query#iden
-#[derive(Iden)]
-enum RolesPermissionsIden {
-    Table,
-    RoleID,
-    PermID,
-}
-
-#[derive(Iden)]
-enum RolesIden {
-    Table,
-    Id,
-}
-
-#[derive(Iden)]
-enum PermissionsIden {
-    Table,
-    Id,
+    async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
+        // prevent from returning error on rollback
+        Ok(())
+    }
 }

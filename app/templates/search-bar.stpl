@@ -1,0 +1,51 @@
+<nav class="navbar navbar-expand-md bg-light navbar-light shadow-sm fixed-top mt-5 py-2">
+  <div class="container-fluid">
+    <label class="navbar-brand pt-2"><%= search_bar.title %></label>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#searchbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="navbar-collapse collapse" id="searchbar">
+      <form class="d-flex me-2 mb-0 pt-2 w-100" action="<%= search_bar.form_url %>" method="get">
+        <% if let Some((Some(selected_val), filter_vals)) = &search_bar.search_filter { %>
+        <select class="form-select me-2 w-25" id="searchfilter" name="filter">
+          <% for val in filter_vals { %>
+            <% if selected_val ==  val{ %>
+              <option selected><%= val %></option>
+            <% } else { %>
+              <option><%= val %></option>
+            <% } %>
+          <% } %>
+        </select>
+        <% } %>
+        <% if let Some((None, filter_vals)) = &search_bar.search_filter { %>
+          <select class="form-select me-2 w-25" id="searchfilter" name="filter">
+            <% for val in filter_vals { %>
+              <option><%= val %></option>
+            <% } %>
+          </select>
+        <% } %>
+        <% if let Some(text) = &search_bar.search_text { %>
+          <input class="form-control me-2" type="search" value="<%= text %>" name="search">
+        <% } else { %>
+          <input class="form-control me-2" type="search" placeholder="Search" name="search">
+        <% } %>
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+      <div class="container d-flex flex-fill">
+      </div>
+      <ul class="navbar-nav d-flex">
+        <% for link in &search_bar.links { %>
+          <% if let Link::Active{ name, url } = link { %>
+            <li class="nav-item"><a href="<%= url %>" class="nav-link active"><%= name %></a></li>
+          <% } %> 
+          <% if let Link::Normal{ name, url } = link { %>
+            <li class="nav-item"><a href="<%= url %>" class="nav-link"><%= name %></a></li>
+          <% } %> 
+          <% if let Link::Disabled{ name, url } = link { %>
+            <li class="nav-item"><a href="#" class="nav-link disabled"><%= name %></a></li>
+          <% } %> 
+        <% } %> 
+      </ul>
+    </div>
+  </div>
+</nav>

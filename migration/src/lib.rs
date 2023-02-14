@@ -5,6 +5,7 @@ mod m20230214_094845_create_permissions_table;
 mod m20230214_102737_create_roles_table;
 mod m20230214_104118_create_roles_permissions_table;
 mod m20230214_105658_seed_basic_rbac;
+mod m20230214_145955_alter_users_add_role_fk;
 
 pub struct Migrator;
 
@@ -17,6 +18,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20230214_102737_create_roles_table::Migration),
             Box::new(m20230214_104118_create_roles_permissions_table::Migration),
             Box::new(m20230214_105658_seed_basic_rbac::Migration),
+            Box::new(m20230214_145955_alter_users_add_role_fk::Migration),
         ]
     }
 }
