@@ -25,6 +25,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(User::PasswordHash).string().not_null())
                     .col(ColumnDef::new(User::CreatedAt).timestamp().not_null())
                     .col(ColumnDef::new(User::UpdatedAt).timestamp().not_null())
+                    .col(ColumnDef::new(User::PasswordChange).boolean().not_null().default(false))
                     .to_owned(),
             )
             .await
@@ -48,4 +49,5 @@ enum User {
     PasswordHash,
     CreatedAt,
     UpdatedAt,
+    PasswordChange,
 }

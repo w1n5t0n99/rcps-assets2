@@ -4,21 +4,22 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "user")]
+#[sea_orm(table_name = "roles")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: Uuid,
-    pub name: String,
-    #[sea_orm(unique)]
-    pub email: String,
-    pub photo: String,
-    pub password_hash: String,
-    pub created_at: DateTime,
-    pub updated_at: DateTime,
-    pub password_change: bool,
+    pub id: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
+
+impl Related<super::permissions::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::roles_permissions::Relation::Permissions.def()
+    }
+    fn via() -> Option<RelationDef> {
+        Some(super::roles_permissions::Relation::Roles.def().rev())
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
