@@ -2,7 +2,12 @@ mod configuration;
 mod telemetry;
 mod startup;
 mod routes;
-
+mod auth;
+mod components;
+mod filesystem;
+mod session_state;
+mod utils;
+mod db;
 
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {

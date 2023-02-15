@@ -13,6 +13,7 @@ use secrecy::{Secret, ExposeSecret};
 use tracing_actix_web::TracingLogger;
 use std::net::TcpListener;
 
+use crate::auth::reject_anonymous_users;
 use crate::configuration::{DatabaseSettings, Settings};
 //use crate::auth::{reject_anonymous_users, extract_user_roles};
 use crate::routes::*;
@@ -93,11 +94,11 @@ fn init(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/web")
             //.wrap(GrantsMiddleware::with_extractor(extract_user_roles))
-            //.wrap(from_fn(reject_anonymous_users))
+            .wrap(from_fn(reject_anonymous_users))
             .service(asset_items::get_asset_items)
         );
 
     cfg.service(health_check::health_check);
-    //cfg.service(login::view_login);
-    //cfg.service(login::post_login);
+    cfg.service(login::view_login);
+    cfg.service(login::post_login);
 }
