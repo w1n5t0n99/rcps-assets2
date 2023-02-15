@@ -28,8 +28,15 @@ pub async fn reject_anonymous_users(
    
     match client {
         Ok(client) => {
-            req.extensions_mut().insert(client.clone());
-            next.call(req).await
+            if client.password_change == true {
+                Err(InternalError::from_response(
+                    anyhow::anyhow!("The user requires password change"),
+                    see_other("/web/password")).into())
+            }
+            else {
+                req.extensions_mut().insert(client.clone());
+                next.call(req).await
+            }
         }
         Err(ClientError::MissingUserSession) => {
             Err(InternalError::from_response(
@@ -49,5 +56,5 @@ pub async fn extract_user_roles(req: &mut ServiceRequest) -> Result<Vec<String>,
         .map_err(|_e| e500("User client not found")
         )?;
 
-    Ok(client.roles.clone())    
+    Ok(client.permissions.clone())    
 }

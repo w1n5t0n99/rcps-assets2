@@ -34,8 +34,8 @@ pub async fn view_login(flash_messages: IncomingFlashMessages) -> Result<impl Re
         .body(body))       
 }
 
-// Just for testing, you probably wouldn't
-// to validate login credentials
+//=======================================================================
+
 #[derive(Validate, serde::Deserialize)]
 pub struct LoginForm {
     #[validate(email)]

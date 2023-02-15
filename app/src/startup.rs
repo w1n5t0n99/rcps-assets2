@@ -7,6 +7,7 @@ use actix_web_flash_messages::storage::CookieMessageStore;
 use actix_web_flash_messages::FlashMessagesFramework;
 use actix_web_grants::GrantsMiddleware;
 use actix_web_lab::middleware::from_fn;
+use actix_files;
 use actix_web::cookie::{Key, time::Duration};
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
 use secrecy::{Secret, ExposeSecret};
@@ -91,11 +92,14 @@ async fn run(
 }
 
 fn init(cfg: &mut web::ServiceConfig) {
+    cfg.service(actix_files::Files::new("/static", "./app/static"));
     cfg.service(
         web::scope("/web")
             //.wrap(GrantsMiddleware::with_extractor(extract_user_roles))
             .wrap(from_fn(reject_anonymous_users))
             .service(asset_items::get_asset_items)
+            .service(password::view_change_password)
+            .service(password::post_change_password)
         );
 
     cfg.service(health_check::health_check);

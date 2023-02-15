@@ -18,7 +18,10 @@ pub enum ClientError {
 #[derive(Clone, Debug)]
 pub struct Client {
     pub user_id: Uuid,
-    pub roles: Vec<String>,
+    pub name: String,
+    pub email: String,
+    pub permissions: Vec<String>,
+    pub password_change: bool,
 }
 
 impl Client {
@@ -29,13 +32,16 @@ impl Client {
     
         let user_id = user_id.ok_or_else(|| ClientError::MissingUserSession)?;
     
-        //let roles = find_user_roles(user_id, db)
-        //    .await
-        //    .map_err(|e| ClientError::UnexpectedError(e.into()))?;
+        let (name, email, password_change, permissions) = find_user_roles(user_id, db)
+            .await
+            .map_err(|e| ClientError::UnexpectedError(e.into()))?;
         
         Ok(Client {
             user_id,
-            roles: Vec::new(),
+            name, 
+            email,
+            permissions,
+            password_change,
         })
     }
 }
