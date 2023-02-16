@@ -8,7 +8,7 @@ use secrecy::{Secret, ExposeSecret};
 
 use crate::auth::{validate_credentials, change_password, Credentials, AuthError, Client};
 use crate::session_state::TypedSession;
-use crate::utils::{see_other, error_chain_fmt, e500, ValidationErrorsExt};
+use crate::utils::{see_other, error_chain_fmt, e500, e404, ValidationErrorsExt};
 use validator::{Validate, ValidationError};
 // "everythinghastostartsomewhere"
 
@@ -18,16 +18,27 @@ use validator::{Validate, ValidationError};
 struct PasswordPage<'a> {
     pub messages: Vec<&'a str>,
     pub name: String,
+    pub id: String,
 }
 
-#[get("/password")]
-pub async fn view_change_password(client: web::ReqData<Client>, flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
+#[get("/{id}/edit_password")]
+pub async fn view_edit_password(
+    client: web::ReqData<Client>,
+    path: web::Path<(uuid::Uuid,)>,
+    flash_messages: IncomingFlashMessages,
+) -> Result<impl Responder, actix_web::Error> {
     let messages: Vec<&str> = flash_messages.iter().map(|f| f.content()).collect();
-    let name = client.into_inner().name;
+    let client = client.into_inner();
+    let path_id = path.into_inner().0;
+
+    if path_id != client.user_id {
+        return Err(e404("page not found".to_string()));
+    }
 
     let body = PasswordPage {
         messages,
-        name,
+        name: client.name,
+        id: client.user_id.to_string(),
     }
     .render_once()
     .map_err(e500)?;
@@ -47,21 +58,22 @@ pub struct PasswordForm {
 }
 
 #[tracing::instrument(name = "Change Password", skip_all)]
-#[post("/password")]
-pub async fn post_change_password (
+#[post("/{id}/edit_password")]
+pub async fn post_edit_password (
     db: web::Data<DbConn>,
     form_data: web::Form<PasswordForm>,
     client: web::ReqData<Client>,
 ) -> Result<impl Responder, actix_web::Error> {
     let form_data = form_data.into_inner();
     let client = client.into_inner();
+    let url = format!("/users/{}/edit_password", client.user_id);
 
     if form_data.new_password.expose_secret() != form_data.new_password_check.expose_secret() {
         FlashMessage::error(
             "You entered two different new passwords - the field values must match.",
         )
         .send();
-        return Ok(see_other("/web/password"));
+        return Ok(see_other(&url));
     }
 
     let credentials = Credentials {
@@ -73,7 +85,7 @@ pub async fn post_change_password (
         return match e {
             AuthError::InvalidCredentials(_) => {
                 FlashMessage::error("The current password is incorrect.").send();
-                Ok(see_other("/web/password"))
+                Ok(see_other(&url))
             }
             AuthError::UnexpectedError(_) => Err(e500(e)),
         };
@@ -84,6 +96,6 @@ pub async fn post_change_password (
         .map_err(e500)?;
 
     FlashMessage::error("Your password has been changed.").send();
-    Ok(see_other("/web/asset_items"))
+    Ok(see_other("/app/asset_items"))
 }
 

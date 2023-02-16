@@ -19,8 +19,8 @@ struct LoginPage<'a> {
     pub messages: Vec<&'a str>,
 }
 
-#[get("/login")]
-pub async fn view_login(flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
+#[get("/sign_in")]
+pub async fn view_sign_in(flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
     let messages: Vec<&str> = flash_messages.iter().map(|f| f.content()).collect();
 
     let body = LoginPage {
@@ -70,8 +70,8 @@ fn login_redirect(e: LoginError) -> InternalError<LoginError> {
     skip_all,
     fields(email=tracing::field::Empty, user_id=tracing::field::Empty)
 )]
-#[post("/login")]
-pub async fn post_login (
+#[post("/sign_in")]
+pub async fn post_sign_in (
     db: web::Data<DbConn>,
     form_data: web::Form<LoginForm>,
     session: TypedSession,
@@ -95,7 +95,7 @@ pub async fn post_login (
                 .insert_user_id(user_id)
                 .map_err(|e| login_redirect(LoginError::UnexpectedError(e.into())))?;
 
-            Ok(see_other("/web/asset_items"))
+            Ok(see_other("/app/asset_items"))
         }
         Err(e) => {
             let e = match e {

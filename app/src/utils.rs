@@ -21,6 +21,14 @@ where
     actix_web::error::ErrorBadRequest(e)
 }
 
+// Return an opaque 403 while preserving the error root's cause for logging.
+pub fn e404<T>(e: T) -> actix_web::Error
+where
+    T: std::fmt::Debug + std::fmt::Display + 'static,
+{
+    actix_web::error::ErrorNotFound(e)
+}
+
 pub fn see_other(location: &str) -> HttpResponse {
     HttpResponse::SeeOther()
         .insert_header((LOCATION, location))

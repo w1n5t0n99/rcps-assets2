@@ -50,7 +50,7 @@
           </div>
         </li>
         <li>
-          <form action="/web/logout" method="post">
+          <form action="/users/sign_out" method="post">
             <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
           </form>
         </li>
