@@ -50,8 +50,8 @@
           </div>
         </li>
         <li>
-          <form action="/users/sign_out" method="post">
-            <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
+          <form action="<%= navbar.sign_out_url %>" method="post">
+            <button type="submit" class="btn btn-link text-decoration-none">Log out</button>
           </form>
         </li>
       </ul>

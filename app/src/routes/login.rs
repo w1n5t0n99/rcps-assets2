@@ -8,15 +8,14 @@ use secrecy::Secret;
 
 use crate::auth::{validate_credentials, Credentials, AuthError};
 use crate::session_state::TypedSession;
-use crate::utils::{see_other, error_chain_fmt, e500, ValidationErrorsExt};
-use validator::{Validate, ValidationError};
-// "everythinghastostartsomewhere"
+use crate::utils::{see_other, error_chain_fmt, e500};
 
 
 #[derive(TemplateOnce)]
 #[template(path = "login.stpl")]
 struct LoginPage<'a> {
     pub messages: Vec<&'a str>,
+    pub sign_in_url: String,
 }
 
 #[get("/sign_in")]
@@ -25,6 +24,7 @@ pub async fn view_sign_in(flash_messages: IncomingFlashMessages) -> Result<impl 
 
     let body = LoginPage {
         messages: messages,
+        sign_in_url: "/users/sign_in".to_string(),
     }
     .render_once()
     .map_err(e500)?;
@@ -36,20 +36,16 @@ pub async fn view_sign_in(flash_messages: IncomingFlashMessages) -> Result<impl 
 
 //=======================================================================
 
-#[derive(Validate, serde::Deserialize)]
+#[derive(serde::Deserialize)]
 pub struct LoginForm {
-    #[validate(email)]
     email: String,
-    #[validate(length(min = 8))]
-    password: String,
+    password: Secret<String>,
 }
 
 #[derive(thiserror::Error)]
 pub enum LoginError {
     #[error("Authentication failed - check email and password are correct")]
     Auth(#[source] anyhow::Error),
-    #[error("Validation failed - check email and password are valid")]
-    Validation(#[source] anyhow::Error),
     #[error("Something went wrong")]
     UnexpectedError(#[from] anyhow::Error),
 }
@@ -62,7 +58,7 @@ impl std::fmt::Debug for LoginError {
 
 fn login_redirect(e: LoginError) -> InternalError<LoginError> {
     FlashMessage::error(e.to_string()).send();
-    InternalError::from_response(e, see_other("/login"))
+    InternalError::from_response(e, see_other("/users/sign_in"))
 }
 
 #[tracing::instrument(
@@ -77,13 +73,10 @@ pub async fn post_sign_in (
     session: TypedSession,
 ) -> Result<impl Responder, InternalError<LoginError>> {
     let form_data = form_data.into_inner();
-    if let Err(e) = form_data.validate() {
-        return Err(login_redirect(LoginError::Validation(e.into())));
-    }
     
     let credentials = Credentials {
         email: form_data.email,
-        password: form_data.password.into(),
+        password: form_data.password,
     };
 
     tracing::Span::current().record("email", &tracing::field::display(&credentials.email));
@@ -95,7 +88,7 @@ pub async fn post_sign_in (
                 .insert_user_id(user_id)
                 .map_err(|e| login_redirect(LoginError::UnexpectedError(e.into())))?;
 
-            Ok(see_other("/app/asset_items"))
+            Ok(see_other("/groups/asset_items"))
         }
         Err(e) => {
             let e = match e {

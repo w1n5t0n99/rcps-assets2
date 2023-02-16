@@ -24,7 +24,7 @@ pub async fn update_user_password(user_id: uuid::Uuid, password_hash: Secret<Str
     Ok(())
 }
 
-pub async fn find_user_roles(user_id: uuid::Uuid, db: &DbConn) -> Result<(String, String, bool, Vec<String>), DbErr> {
+pub async fn find_user_roles(user_id: uuid::Uuid, db: &DbConn) -> Result<(user::Model, Vec<String>), DbErr> {
     let user_roles = User::find_by_id(user_id)
         .find_also_related(Roles)
         .one(db)
@@ -39,13 +39,13 @@ pub async fn find_user_roles(user_id: uuid::Uuid, db: &DbConn) -> Result<(String
             let permissions: Vec<String> = perms.iter()
                 .filter_map(|(_, perm)| 
                     match perm {
-                        Some(perm) => Some(perm.id.clone()),
+                        Some(perm) => Some(perm.id.to_string()),
                         None => None,            
                     }
                 )
                 .collect();
 
-            return Ok((user.name.to_owned(), user.email.to_owned(), user.password_change, permissions))
+            return Ok((user.clone(), permissions))
         }
 
     Err(DbErr::RecordNotFound("no user or roles found".to_string()))

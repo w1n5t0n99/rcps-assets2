@@ -8,5 +8,6 @@ pub struct NavBar {
     #[builder(setter(each(name = "add_link")))]
     pub links: Vec<Link>,
     pub is_admin: bool,
+    pub sign_out_url: String,
 }
 

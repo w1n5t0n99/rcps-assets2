@@ -21,16 +21,18 @@ struct ListPage<'a> {
     pub search_bar: SearchBar,
 }
 #[get("/asset_items")]
+#[has_permissions("item_view")]
 pub async fn get_asset_items(client: web::ReqData<Client>, flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
     //tracing::event!(tracing::Level::INFO, "###### asset route called #######");
     let client = client.into_inner();
     let messages: Vec<&str> = flash_messages.iter().map(|f| f.content()).collect();
 
     let navbar = NavBarBuilder::default()
+        .sign_out_url(client.url_to("sign_out"))
         .username(client.name)
         .email(client.email)
         .is_admin(true)
-        .add_link(Link::Active { name: "Asset-Items".into(), url: "/web/asset_items".into() })
+        .add_link(Link::Active { name: "Asset-Items".into(), url: "/groups/asset_items".into() })
         .add_link(Link::Normal { name: "User-Items".into(), url: "#".into() })
         .add_link(Link::Disabled { name: "Schools".into(), url: "#".into() })
         .add_link(Link::Disabled { name: "Rooms".into(), url: "#".into() })
@@ -39,7 +41,7 @@ pub async fn get_asset_items(client: web::ReqData<Client>, flash_messages: Incom
 
     let search_bar = SearchBarBuilder::default()
         .title("Assets".to_string())
-        .form_url("/web/asset_items".to_string())
+        .form_url("/groups/asset_items".to_string())
         .search_filter((None, vec!["all".to_string(), "assets".to_string(), "model".to_string(), "serial #".to_string()]))
         .add_link(Link::Normal { name: "Add".into(), url: "#".into() })
         .add_link(Link::Disabled { name: "Upload".into(), url: "#".into() })

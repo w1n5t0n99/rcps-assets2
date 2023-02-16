@@ -1,5 +1,4 @@
 use crate::session_state::TypedSession;
-use crate::utils::{e500, see_other};
 use crate::db::*;
 
 use anyhow::Context;
@@ -32,17 +31,21 @@ impl Client {
     
         let user_id = user_id.ok_or_else(|| ClientError::MissingUserSession)?;
     
-        let (name, email, password_change, permissions) = find_user_roles(user_id, db)
+        let (user, permissions) = find_user_roles(user_id, db)
             .await
             .map_err(|e| ClientError::UnexpectedError(e.into()))?;
         
         Ok(Client {
             user_id,
-            name, 
-            email,
+            name: user.name, 
+            email: user.email,
             permissions,
-            password_change,
+            password_change: user.password_change,
         })
+    }
+
+    pub fn url_to(&self, end_point: &str) -> String {
+        format!("/users/{}/{}", self.user_id, end_point)
     }
 }
 

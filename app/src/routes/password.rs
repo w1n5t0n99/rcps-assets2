@@ -1,6 +1,6 @@
 use actix_web::error::InternalError;
 use actix_web::http::header::ContentType;
-use actix_web::{get, post, Responder, web, HttpResponse};
+use actix_web::{get, post, Responder, web, HttpResponse, HttpRequest};
 use actix_web_flash_messages::{FlashMessage, IncomingFlashMessages};
 use sailfish::TemplateOnce;
 use sea_orm::DbConn;
@@ -21,7 +21,7 @@ struct PasswordPage<'a> {
     pub id: String,
 }
 
-#[get("/{id}/edit_password")]
+#[get("/edit_password")]
 pub async fn view_edit_password(
     client: web::ReqData<Client>,
     path: web::Path<(uuid::Uuid,)>,
@@ -58,22 +58,22 @@ pub struct PasswordForm {
 }
 
 #[tracing::instrument(name = "Change Password", skip_all)]
-#[post("/{id}/edit_password")]
+#[post("/edit_password")]
 pub async fn post_edit_password (
+    req: HttpRequest,
     db: web::Data<DbConn>,
     form_data: web::Form<PasswordForm>,
     client: web::ReqData<Client>,
 ) -> Result<impl Responder, actix_web::Error> {
     let form_data = form_data.into_inner();
     let client = client.into_inner();
-    let url = format!("/users/{}/edit_password", client.user_id);
+    //let url = client.url_to("edit_password");
 
     if form_data.new_password.expose_secret() != form_data.new_password_check.expose_secret() {
-        FlashMessage::error(
-            "You entered two different new passwords - the field values must match.",
-        )
-        .send();
-        return Ok(see_other(&url));
+        FlashMessage::error("You entered two different new passwords - the field values must match.")
+            .send();
+
+        return Ok(see_other(req.path()));
     }
 
     let credentials = Credentials {
@@ -85,7 +85,7 @@ pub async fn post_edit_password (
         return match e {
             AuthError::InvalidCredentials(_) => {
                 FlashMessage::error("The current password is incorrect.").send();
-                Ok(see_other(&url))
+                Ok(see_other(req.path()))
             }
             AuthError::UnexpectedError(_) => Err(e500(e)),
         };
@@ -96,6 +96,6 @@ pub async fn post_edit_password (
         .map_err(e500)?;
 
     FlashMessage::error("Your password has been changed.").send();
-    Ok(see_other("/app/asset_items"))
+    Ok(see_other("/group/asset_items"))
 }
 

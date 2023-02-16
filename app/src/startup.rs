@@ -15,7 +15,7 @@ use tracing_actix_web::TracingLogger;
 use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::auth::{reject_anonymous_users, extract_user_roles, reject_anonymous_and_invalid_users};
+use crate::auth::{reject_anonymous_users, extract_user_permissions, check_user_password_status};
 use crate::routes::*;
 
 
@@ -91,29 +91,27 @@ async fn run(
 }
 
 fn init(cfg: &mut web::ServiceConfig) {
+    cfg.service(health_check::health_check);
     cfg.service(actix_files::Files::new("/static", "./app/static"));
 
     cfg.service(
-        web::scope("/app")
-            .wrap(GrantsMiddleware::with_extractor(extract_user_roles))
-            .wrap(from_fn(reject_anonymous_and_invalid_users))
+        web::scope("/groups")
+            .wrap(GrantsMiddleware::with_extractor(extract_user_permissions))
+            .wrap(from_fn(check_user_password_status))
+            .wrap(from_fn(reject_anonymous_users))
             .service(asset_items::get_asset_items)
         );
 
     cfg.service(
         web::scope("/users")
-            .wrap(from_fn(reject_anonymous_users))
-            .service(password::view_edit_password)
-            .service(password::post_edit_password)
-            .service(logout::sign_out)
-    );
-
-    cfg.service(
-        web::scope("/user")
             .service(login::view_sign_in)
             .service(login::post_sign_in)
-    );
-
-    cfg.service(health_check::health_check);
+            .service(web::scope("/{id}")
+                .wrap(from_fn(reject_anonymous_users))
+                .service(password::view_edit_password)
+                .service(password::post_edit_password)
+                .service(logout::sign_out)
+            )
+        );
 
 }
