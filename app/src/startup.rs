@@ -1,4 +1,5 @@
 use actix_web::dev::Server;
+use actix_web::middleware::ErrorHandlers;
 use actix_web::{web, App, HttpServer};
 use actix_session::storage::CookieSessionStore;
 use actix_session::SessionMiddleware;
@@ -9,6 +10,7 @@ use actix_web_grants::GrantsMiddleware;
 use actix_web_lab::middleware::from_fn;
 use actix_files;
 use actix_web::cookie::{Key, time::Duration};
+use reqwest::StatusCode;
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
 use secrecy::{Secret, ExposeSecret};
 use tracing_actix_web::TracingLogger;
@@ -82,6 +84,13 @@ async fn run(
                 .build()
             )
             .wrap(TracingLogger::default())
+            .wrap(
+                ErrorHandlers::new()
+                    .handler(StatusCode::BAD_REQUEST, errors::render_400)
+                    .handler(StatusCode::FORBIDDEN, errors::render_403)
+                    .handler(StatusCode::NOT_FOUND, errors::render_404)
+                    .handler(StatusCode::INTERNAL_SERVER_ERROR, errors::render_500)
+            )
             .app_data(db_connection.clone())
             .configure(init)
     })

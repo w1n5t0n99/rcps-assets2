@@ -1,4 +1,3 @@
-use actix_web::error::InternalError;
 use actix_web::http::header::ContentType;
 use actix_web::{get, post, Responder, web, HttpResponse, HttpRequest};
 use actix_web_flash_messages::{FlashMessage, IncomingFlashMessages};
@@ -7,8 +6,7 @@ use sea_orm::DbConn;
 use secrecy::{Secret, ExposeSecret};
 
 use crate::auth::{validate_credentials, change_password, Credentials, AuthError, Client};
-use crate::session_state::TypedSession;
-use crate::utils::{see_other, error_chain_fmt, e500, e404, ValidationErrorsExt};
+use crate::utils::{see_other, error_chain_fmt, e500, e400};
 use validator::{Validate, ValidationError};
 // "everythinghastostartsomewhere"
 
@@ -32,7 +30,7 @@ pub async fn view_edit_password(
     let path_id = path.into_inner().0;
 
     if path_id != client.user_id {
-        return Err(e404("page not found".to_string()));
+        return Err(e400("page not found".to_string()));
     }
 
     let body = PasswordPage {

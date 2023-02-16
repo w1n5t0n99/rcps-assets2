@@ -1,5 +1,5 @@
 <nav class="navbar navbar-dark bg-dark navbar-expand-md fixed-top">
-  <a href="#" class="navbar-brand ps-2">RCPS Assets</a>
+  <a href="#" class="navbar-brand ps-2"><img src="/static/r-logo.png" alt="Avatar Logo" style="width:30px;" class="rounded-pill"></a>
   <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar">
     <span class="navbar-toggler-icon"></span>
   </button>
