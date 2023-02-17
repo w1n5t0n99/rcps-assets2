@@ -1,5 +1,5 @@
 use sea_orm_migration::prelude::*;
-use sea_orm_migration::sea_orm::{entity::*, query::*};
+use sea_orm_migration::sea_orm::entity::*;
 use ::entity::user;
 
 
@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
         Ok(())
     }
 
-    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+    async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
         // prevent from returning error on rollback
         Ok(())
     }

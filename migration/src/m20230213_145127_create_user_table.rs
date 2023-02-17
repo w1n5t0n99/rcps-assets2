@@ -1,5 +1,4 @@
 use sea_orm_migration::prelude::*;
-use chrono::{DateTime, TimeZone, NaiveDateTime, Utc};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;

@@ -31,7 +31,7 @@ pub async fn get_asset_items(client: web::ReqData<Client>, flash_messages: Incom
         .sign_out_url(client.url_to("sign_out"))
         .username(client.name)
         .email(client.email)
-        .is_admin(true)
+        .is_admin(client.permissions.contains(&"edit_settings".to_string()))
         .add_link(Link::Active { name: "Asset-Items".into(), url: "/groups/asset_items".into() })
         .add_link(Link::Normal { name: "User-Items".into(), url: "#".into() })
         .add_link(Link::Disabled { name: "Schools".into(), url: "#".into() })
@@ -39,12 +39,19 @@ pub async fn get_asset_items(client: web::ReqData<Client>, flash_messages: Incom
         .build()
         .map_err(e500)?;
 
+    let links = if client.permissions.contains(&"item_create".to_string()) {
+        (Link::Normal { name: "Add".into(), url: "#".into() }, Link::Normal { name: "Upload".into(), url: "#".into() })
+    }
+    else {
+        (Link::Disabled { name: "Add".into(), url: "#".into() }, Link::Disabled { name: "Upload".into(), url: "#".into() })
+    };
+
     let search_bar = SearchBarBuilder::default()
         .title("Assets".to_string())
         .form_url("/groups/asset_items".to_string())
         .search_filter((None, vec!["all".to_string(), "assets".to_string(), "model".to_string(), "serial #".to_string()]))
-        .add_link(Link::Normal { name: "Add".into(), url: "#".into() })
-        .add_link(Link::Disabled { name: "Upload".into(), url: "#".into() })
+        .add_link(links.0)
+        .add_link(links.1)
         .build()
         .map_err(e500)?;
       

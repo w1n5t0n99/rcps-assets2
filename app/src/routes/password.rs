@@ -6,8 +6,8 @@ use sea_orm::DbConn;
 use secrecy::{Secret, ExposeSecret};
 
 use crate::auth::{validate_credentials, change_password, Credentials, AuthError, Client};
-use crate::utils::{see_other, error_chain_fmt, e500, e400};
-use validator::{Validate, ValidationError};
+use crate::utils::{see_other, e500, e400};
+use validator::{validate_must_match, validate_length};
 // "everythinghastostartsomewhere"
 
 
@@ -58,20 +58,27 @@ pub struct PasswordForm {
 #[tracing::instrument(name = "Change Password", skip_all)]
 #[post("/edit_password")]
 pub async fn post_edit_password (
-    req: HttpRequest,
     db: web::Data<DbConn>,
     form_data: web::Form<PasswordForm>,
     client: web::ReqData<Client>,
 ) -> Result<impl Responder, actix_web::Error> {
     let form_data = form_data.into_inner();
     let client = client.into_inner();
-    //let url = client.url_to("edit_password");
+    let url = client.url_to("edit_password");
 
-    if form_data.new_password.expose_secret() != form_data.new_password_check.expose_secret() {
+    // TODO - replace with custom secret type for password which can handle validation
+    if validate_must_match(form_data.new_password.expose_secret(), form_data.new_password_check.expose_secret()) == false {
         FlashMessage::error("You entered two different new passwords - the field values must match.")
             .send();
 
-        return Ok(see_other(req.path()));
+        return Ok(see_other(&url));
+    }
+
+    if validate_length(form_data.new_password.expose_secret(), Some(8), None, None) == false {
+        FlashMessage::error("The password must be atleast 8 characters long.")
+            .send();
+
+        return Ok(see_other(&url));
     }
 
     let credentials = Credentials {
@@ -83,7 +90,7 @@ pub async fn post_edit_password (
         return match e {
             AuthError::InvalidCredentials(_) => {
                 FlashMessage::error("The current password is incorrect.").send();
-                Ok(see_other(req.path()))
+                Ok(see_other(&url))
             }
             AuthError::UnexpectedError(_) => Err(e500(e)),
         };
