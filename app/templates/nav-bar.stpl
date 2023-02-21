@@ -27,7 +27,7 @@
         </svg>
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item" href="#">User Configuration</a></li>
+        <li><a class="dropdown-item" href="/account/users">User Configuration</a></li>
         <li><a class="dropdown-item" href="#">Role Configuration</a></li>
       </ul>
     </div>

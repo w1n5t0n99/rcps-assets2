@@ -31,7 +31,7 @@ impl Client {
     
         let user_id = user_id.ok_or_else(|| ClientError::MissingUserSession)?;
     
-        let (user, permissions) = find_user_roles(user_id, db)
+        let (user, permissions) = find_user_permissions(user_id, db)
             .await
             .map_err(|e| ClientError::UnexpectedError(e.into()))?;
         
@@ -46,6 +46,11 @@ impl Client {
 
     pub fn url_to(&self, end_point: &str) -> String {
         format!("/users/{}/{}", self.user_id, end_point)
+    }
+
+    pub fn has_permission<S: Into<String>>(&self, permission: S) -> bool {
+        // TODO: benchmark may replace with HashSet
+        self.permissions.contains(&permission.into())
     }
 }
 

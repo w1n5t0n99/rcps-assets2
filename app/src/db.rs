@@ -1,5 +1,5 @@
 use sea_orm::*;
-use ::entity::{user, permissions, roles_permissions};
+use ::entity::{user, roles, permissions, roles_permissions};
 use ::entity::prelude::{User, Roles, Permissions, RolesPermissions};
 use secrecy::{Secret, ExposeSecret};
 
@@ -24,7 +24,29 @@ pub async fn update_user_password(user_id: uuid::Uuid, password_hash: Secret<Str
     Ok(())
 }
 
-pub async fn find_user_roles(user_id: uuid::Uuid, db: &DbConn) -> Result<(user::Model, Vec<String>), DbErr> {
+pub async fn find_users_with_role(db: &DbConn) -> Result<Vec<(user::Model, roles::Model)>, DbErr> {
+    let users = User::find()
+        .find_also_related(Roles)
+        .all(db)
+        .await?;
+    
+    let users: Vec<(user::Model, roles::Model)> = users.into_iter()
+        .filter_map(|(user, role)| 
+            match role {
+                Some(role) => {
+                    Some((user, role))
+                }
+                None => {
+                    None
+                }
+            }
+        )
+        .collect();
+
+    Ok(users)
+}
+
+pub async fn find_user_permissions(user_id: uuid::Uuid, db: &DbConn) -> Result<(user::Model, Vec<String>), DbErr> {
     let user_roles = User::find_by_id(user_id)
         .find_also_related(Roles)
         .one(db)

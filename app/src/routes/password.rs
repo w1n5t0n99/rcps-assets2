@@ -66,7 +66,6 @@ pub async fn post_edit_password (
     let client = client.into_inner();
     let url = client.url_to("edit_password");
 
-    // TODO - replace with custom secret type for password which can handle validation
     if validate_must_match(form_data.new_password.expose_secret(), form_data.new_password_check.expose_secret()) == false {
         FlashMessage::error("You entered two different new passwords - the field values must match.")
             .send();

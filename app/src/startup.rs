@@ -112,6 +112,14 @@ fn init(cfg: &mut web::ServiceConfig) {
         );
 
     cfg.service(
+        web::scope("/account")
+            .wrap(GrantsMiddleware::with_extractor(extract_user_permissions))
+            .wrap(from_fn(check_user_password_status))
+            .wrap(from_fn(reject_anonymous_users))
+            .service(account::users::view_users)
+        );
+
+    cfg.service(
         web::scope("/users")
             .service(login::view_sign_in)
             .service(login::post_sign_in)
