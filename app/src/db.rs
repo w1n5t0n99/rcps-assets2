@@ -73,6 +73,14 @@ pub async fn find_user_permissions(user_id: uuid::Uuid, db: &DbConn) -> Result<(
     Err(DbErr::RecordNotFound("no user or roles found".to_string()))
 }
 
+pub async fn find_roles(db: &DbConn) -> Result<Vec<roles::Model>, DbErr> {
+    let roles = Roles::find()
+        .all(db)
+        .await?;
+
+    Ok(roles)
+}
+
 #[derive(Debug, serde::Serialize)]
 pub struct BulkInsert {
     pub total: usize,

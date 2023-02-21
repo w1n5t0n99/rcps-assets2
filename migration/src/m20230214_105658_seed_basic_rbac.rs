@@ -3,7 +3,20 @@ use sea_orm_migration::sea_orm::{entity::*, query::*};
 use ::entity::{permissions, roles, roles_permissions};
 
 
-static PERMS: [&'static str; 8] = ["user_view", "user_edit", "user_create", "apply__item_action", "item_view", "item_edit", "item_create", "edit_settings"];
+static PERMS: [&'static str; 12] = [
+    "user_view",
+    "user_edit",
+    "user_create",
+    "item_assign_user",
+    "item_assign_location",
+    "item_view",
+    "item_edit",
+    "item_create",
+    "view_settings",
+    "edit_settings",
+    "profile_view",
+    "profile_edit",
+];
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -25,13 +38,21 @@ impl MigrationTrait for Migration {
 
         // insert roles
         roles::ActiveModel {
-            id: Set("admin".to_string())
+            id: Set("admin".to_string()),
+            description: Set("Administrator Role - All Permissions".to_owned()),
+            created_at: Set(chrono::offset::Utc::now().naive_utc()),
+            updated_at: Set(chrono::offset::Utc::now().naive_utc()),
+            is_admin: Set(true),
         }
         .insert(&transaction)
         .await?;
 
         roles::ActiveModel {
-            id: Set("inactive".to_string())
+            id: Set("inactive".to_string()),
+            description: Set("Inactive Role - No Permissions".to_owned()),
+            created_at: Set(chrono::offset::Utc::now().naive_utc()),
+            updated_at: Set(chrono::offset::Utc::now().naive_utc()),
+            is_admin: Set(false),
         }
         .insert(&transaction)
         .await?;
@@ -47,7 +68,7 @@ impl MigrationTrait for Migration {
         }
 
         roles_permissions::ActiveModel {
-            perm_id: Set("item_view".to_string()),
+            perm_id: Set("profile_view".to_string()),
             role_id: Set("inactive".to_string())
         }
         .insert(&transaction)

@@ -117,6 +117,7 @@ fn init(cfg: &mut web::ServiceConfig) {
             .wrap(from_fn(check_user_password_status))
             .wrap(from_fn(reject_anonymous_users))
             .service(account::users::view_users)
+            .service(account::roles::view_roles)
         );
 
     cfg.service(

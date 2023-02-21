@@ -5,31 +5,35 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="navbar-collapse collapse" id="searchbar">
-      <form class="d-flex me-2 mb-0 pt-2 w-100" action="<%= search_bar.form_url %>" method="get">
-        <% if let Some((Some(selected_val), filter_vals)) = &search_bar.search_filter { %>
-        <select class="form-select me-2 w-25" id="searchfilter" name="filter">
-          <% for val in filter_vals { %>
-            <% if selected_val ==  val{ %>
-              <option selected><%= val %></option>
-            <% } else { %>
-              <option><%= val %></option>
+      <form class="d-flex me-2 mb-0 pt-2" action="<%= search_bar.form_url %>" method="get">
+        <div class="input-group">
+          <% if let Some((Some(selected_val), filter_vals)) = &search_bar.search_filter { %>
+          <div>
+            <select class="form-select rounded-0 rounded-start" name="filter">
+              <% for val in filter_vals { %>
+                <% if selected_val ==  val{ %>
+                  <option selected><%= val %></option>
+                <% } else { %>
+                  <option><%= val %></option>
+                <% } %>
+              <% } %>
+            </select>
             <% } %>
+            <% if let Some((None, filter_vals)) = &search_bar.search_filter { %>
+              <select class="form-select rounded-0 rounded-start" name="filter">
+                <% for val in filter_vals { %>
+                  <option><%= val %></option>
+                <% } %>
+            </select>
+            <% } %>
+          </div>
+          <% if let Some(text) = &search_bar.search_text { %>
+            <input class="form-control" type="search" value="<%= text %>" name="search">
+          <% } else { %>
+            <input class="form-control" type="search" placeholder="Search" name="search">
           <% } %>
-        </select>
-        <% } %>
-        <% if let Some((None, filter_vals)) = &search_bar.search_filter { %>
-          <select class="form-select me-2 w-25" id="searchfilter" name="filter">
-            <% for val in filter_vals { %>
-              <option><%= val %></option>
-            <% } %>
-          </select>
-        <% } %>
-        <% if let Some(text) = &search_bar.search_text { %>
-          <input class="form-control me-2" type="search" value="<%= text %>" name="search">
-        <% } else { %>
-          <input class="form-control me-2" type="search" placeholder="Search" name="search">
-        <% } %>
-        <button class="btn btn-outline-success" type="submit">Search</button>
+          <button type="button" class="btn btn-outline-primary">search</button>
+        </div>
       </form>
       <div class="container d-flex flex-fill">
       </div>

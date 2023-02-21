@@ -17,6 +17,10 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .primary_key(),
                     )
+                    .col(ColumnDef::new(Roles::Description).string().not_null().default(" "))
+                    .col(ColumnDef::new(Roles::CreatedAt).timestamp().not_null())
+                    .col(ColumnDef::new(Roles::UpdatedAt).timestamp().not_null())
+                    .col(ColumnDef::new(Roles::IsAdmin).boolean().not_null().default(false))
                     .to_owned(),
             )
             .await
@@ -34,4 +38,8 @@ impl MigrationTrait for Migration {
 enum Roles {
     Table,
     Id,
+    Description,
+    CreatedAt,
+    UpdatedAt,
+    IsAdmin,
 }
