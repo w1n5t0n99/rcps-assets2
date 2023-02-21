@@ -34,7 +34,8 @@ pub async fn get_asset_items(client: web::ReqData<Client>, flash_messages: Incom
         .email(&client.email)
         .is_admin(client.has_permission("edit_settings"))
         .add_link(Link::Active { name: "Asset-Items".into(), url: "/groups/asset_items".into() })
-        .add_link(Link::Normal { name: "User-Items".into(), url: "#".into() })
+        .add_link(Link::Disabled { name: "User-Items".into(), url: "#".into() })
+        .add_link(Link::Disabled { name: "Locations".into(), url: "#".into() })
         .build()
         .map_err(e500)?;
 

@@ -28,7 +28,7 @@
         </div>
     </div>
   <% } %> 
-  <div class="position-relative m-3">
+  <div class="position-relative mx-3 my-4">
     <table class="table">
       <thead class="bg-light">
         <tr>

@@ -36,8 +36,9 @@ pub async fn view_roles(client: web::ReqData<Client>, db: web::Data<DbConn>, fla
         .username(&client.name)
         .email(&client.email)
         .is_admin(client.has_permission("edit_settings"))
-        .add_link(Link::Active { name: "Asset-Items".into(), url: "/groups/asset_items".into() })
-        .add_link(Link::Normal { name: "User-Items".into(), url: "#".into() })
+        .add_link(Link::Normal { name: "Asset-Items".into(), url: "/groups/asset_items".into() })
+        .add_link(Link::Disabled { name: "User-Items".into(), url: "#".into() })
+        .add_link(Link::Disabled { name: "Locations".into(), url: "#".into() })
         .build()
         .map_err(e500)?;
 
@@ -47,7 +48,6 @@ pub async fn view_roles(client: web::ReqData<Client>, db: web::Data<DbConn>, fla
     let search_bar = SearchBarBuilder::default()
         .title("Roles".to_string())
         .form_url("/account/roles".to_string())
-        .search_filter((None, vec!["all".to_string()]))
         .add_link(add_link)
         .add_link(upload_link)
         .build()
