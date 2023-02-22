@@ -1,0 +1,27 @@
+<nav class="navbar navbar-expand-md bg-light navbar-light shadow-sm fixed-top mt-5 py-1">
+    <div class="container-fluid">
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#titlebar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div>
+        <label class="navbar-brand"><%= titlebar.title %></label>
+      </div>
+      <div class="navbar-collapse collapse" id="titlebar">
+        <div class="container d-flex flex-fill">
+        </div>
+        <ul class="navbar-nav d-flex">
+          <% for link in &titlebar.links { %>
+            <% if let Link::Active{ name, url } = link { %>
+              <li class="nav-item"><a href="<%= url %>" class="nav-link active"><%= name %></a></li>
+            <% } %> 
+            <% if let Link::Normal{ name, url } = link { %>
+              <li class="nav-item"><a href="<%= url %>" class="nav-link"><%= name %></a></li>
+            <% } %> 
+            <% if let Link::Disabled{ name, url } = link { %>
+              <li class="nav-item"><a href="#" class="nav-link disabled"><%= name %></a></li>
+            <% } %> 
+          <% } %> 
+        </ul>
+      </div>
+    </div>
+  </nav>

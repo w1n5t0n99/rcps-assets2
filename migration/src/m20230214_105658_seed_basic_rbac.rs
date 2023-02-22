@@ -3,15 +3,17 @@ use sea_orm_migration::sea_orm::{entity::*, query::*};
 use ::entity::{permissions, roles, roles_permissions};
 
 
-static PERMS: [&'static str; 12] = [
+static PERMS: [&'static str; 14] = [
     "user_view",
     "user_edit",
     "user_create",
+    "user_delete",
     "item_assign_user",
     "item_assign_location",
     "item_view",
     "item_edit",
     "item_create",
+    "item_delete",
     "view_settings",
     "edit_settings",
     "profile_view",

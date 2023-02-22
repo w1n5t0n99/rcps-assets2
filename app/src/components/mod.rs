@@ -1,5 +1,6 @@
 pub mod navbar;
 pub mod searchbar;
+pub mod titlebar;
 
 
 #[derive(Debug, Clone)]

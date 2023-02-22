@@ -3,10 +3,11 @@ use sea_orm_migration::sea_orm::{entity::*, query::*};
 use ::entity::{permissions, roles_permissions};
 
 
-static PERMS: [&'static str; 3] = [
+static PERMS: [&'static str; 4] = [
     "roles_view",
     "roles_edit",
     "roles_create",
+    "roles_delete",
 ];
 
 #[derive(DeriveMigrationName)]

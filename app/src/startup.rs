@@ -118,6 +118,7 @@ fn init(cfg: &mut web::ServiceConfig) {
             .wrap(from_fn(reject_anonymous_users))
             .service(account::users::view_users)
             .service(account::roles::view_roles)
+            .service(account::add_role::add_role_form)
         );
 
     cfg.service(

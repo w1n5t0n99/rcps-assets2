@@ -100,6 +100,6 @@ pub async fn post_edit_password (
         .map_err(e500)?;
 
     FlashMessage::error("Your password has been changed.").send();
-    Ok(see_other("/group/asset_items"))
+    Ok(see_other("/groups/asset_items"))
 }
 

@@ -1,3 +1,4 @@
+use actix_web::error::InternalError;
 use actix_web::http::header::ContentType;
 use actix_web::{get, post, web, Responder, HttpResponse};
 use actix_web_grants::proc_macro::has_permissions;
@@ -7,26 +8,24 @@ use crate::db::*;
 use crate::auth::Client;
 use crate::utils::e500;
 use sailfish::TemplateOnce;
-use crate::components::Link;
+use crate::components::{Link, titlebar};
 use crate::components::navbar::{NavBar, NavBarBuilder};
-use crate::components::searchbar::{SearchBar, SearchBarBuilder};
+use crate::components::titlebar::{TitleBar, TitleBarBuilder};
 
 use ::entity::{roles};
 use ::entity::prelude::{Roles};
 
 
 #[derive(TemplateOnce)]
-#[template(path = "roles.stpl")]
-struct ListPage<'a> {
-    pub messages: Vec<&'a str>,
+#[template(path = "add-role.stpl")]
+struct ListPage {
     pub navbar: NavBar,
-    pub search_bar: SearchBar,
-    pub roles: Vec<roles::Model>,
+    pub titlebar: TitleBar,
 }
 
-#[get("/roles")]
-#[has_permissions("roles_view")]
-pub async fn view_roles(client: web::ReqData<Client>, db: web::Data<DbConn>, flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
+#[get("/roles/add")]
+#[has_permissions("roles_create")]
+pub async fn add_role_form(client: web::ReqData<Client>, db: web::Data<DbConn>, flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
     let client = client.into_inner();
     let messages: Vec<&str> = flash_messages.iter().map(|f| f.content()).collect();
 
@@ -41,14 +40,9 @@ pub async fn view_roles(client: web::ReqData<Client>, db: web::Data<DbConn>, fla
         .build()
         .map_err(e500)?;
 
-    let add_link = if client.has_permission("roles_create") { Link::create_normal("Add", "/account/roles/add") } else { Link::create_disabled("Add", "#") };
-    let upload_link = if client.has_permission("roles_create") { Link::create_disabled("Upload", "#") } else { Link::create_disabled("Upload", "#") };
-
-    let search_bar = SearchBarBuilder::default()
-        .title("Roles".to_string())
-        .form_url("/account/roles".to_string())
-        .add_link(add_link)
-        .add_link(upload_link)
+    let titlebar = TitleBarBuilder::default()
+        .title("Add new Role".to_string())
+        .add_link(Link::create_normal("Save", "#"))
         .build()
         .map_err(e500)?;
 
@@ -57,10 +51,8 @@ pub async fn view_roles(client: web::ReqData<Client>, db: web::Data<DbConn>, fla
         .map_err(e500)?;
 
     let body = ListPage {
-            messages,
             navbar,
-            search_bar,
-            roles,
+            titlebar,
         }
         .render_once()
         .map_err(e500)?;
