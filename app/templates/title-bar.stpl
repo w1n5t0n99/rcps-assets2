@@ -4,7 +4,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div>
-        <label class="navbar-brand"><%= titlebar.title %></label>
+        <label class="navbar-brand pt-2 mt-2"><%= titlebar.title %></label>
       </div>
       <div class="navbar-collapse collapse" id="titlebar">
         <div class="container d-flex flex-fill">

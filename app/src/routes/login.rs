@@ -19,7 +19,13 @@ struct LoginPage<'a> {
 }
 
 #[get("/sign_in")]
-pub async fn view_sign_in(flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
+pub async fn view_sign_in(session: TypedSession, flash_messages: IncomingFlashMessages) -> Result<impl Responder, actix_web::Error> {
+    if let Ok(Some(_)) = session.get_user_id() {
+        FlashMessage::error("You are already logged in".to_string()).send();
+        return Ok(see_other("/groups/asset_items"));
+    }
+
+    
     let messages: Vec<&str> = flash_messages.iter().map(|f| f.content()).collect();
 
     let body = LoginPage {

@@ -41,8 +41,8 @@ pub async fn add_role_form(client: web::ReqData<Client>, db: web::Data<DbConn>, 
         .map_err(e500)?;
 
     let titlebar = TitleBarBuilder::default()
-        .title("Add new Role".to_string())
-        .add_link(Link::create_normal("Save", "#"))
+        .title("Add New Role".to_string())
+        .links(Vec::new())
         .build()
         .map_err(e500)?;
 
