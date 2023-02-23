@@ -8,6 +8,7 @@ mod filesystem;
 mod session_state;
 mod utils;
 mod db;
+mod permissions;
 
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {

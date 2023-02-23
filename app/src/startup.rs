@@ -18,6 +18,7 @@ use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::auth::{reject_anonymous_users, extract_user_permissions, check_user_password_status};
+use crate::permissions::PermissionsCollection;
 use crate::routes::*;
 
 
@@ -29,6 +30,7 @@ pub struct Application {
 impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
         let db_conn = get_database_connection(&configuration.database).await;
+        let permission_collection = PermissionsCollection::create_collection();
 
         let address = format!("{}:{}", configuration.application.host, configuration.application.port);
         let listener = TcpListener::bind(&address)?;
@@ -39,6 +41,7 @@ impl Application {
             db_conn,
             configuration.application.base_url,
             configuration.application.hmac_secret,
+            permission_collection,
         )
         .await?;
 
@@ -70,6 +73,7 @@ async fn run(
     db_connection: DatabaseConnection,
     _base_url: String,
     hmac_secret: Secret<String>,
+    permission_collection: PermissionsCollection,
 ) -> Result<Server, anyhow::Error> {
     let db_connection = web::Data::new(db_connection);
     let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
@@ -92,6 +96,7 @@ async fn run(
                     .handler(StatusCode::INTERNAL_SERVER_ERROR, errors::render_500)
             )
             .app_data(db_connection.clone())
+            .app_data(permission_collection.clone())
             .configure(init)
     })
     .listen(listener)?
@@ -119,6 +124,8 @@ fn init(cfg: &mut web::ServiceConfig) {
             .service(account::users::view_users)
             .service(account::roles::view_roles)
             .service(account::add_role::add_role_form)
+            .service(account::add_role::add_role)
+
         );
 
     cfg.service(
