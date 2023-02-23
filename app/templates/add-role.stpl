@@ -33,25 +33,25 @@
         <div class="col-sm-1 p-3"></div>
         <div class="col-sm-1 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="item_view">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm0" value="item_view">
             <label class="form-check-label">View</label>
           </div>
         </div>
         <div class="col-sm-1 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="item_create">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm1" value="item_create">
             <label class="form-check-label">Add</label>
           </div>
         </div>
         <div class="col-sm-1 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="item_edit">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm2" value="item_edit">
             <label class="form-check-label">Edit</label>
           </div>
         </div>
         <div class="col-sm-1 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="item_delete">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm3" value="item_delete">
             <label class="form-check-label">Delete</label>
           </div>
         </div>
@@ -66,14 +66,14 @@
 
         <div class="col-sm-2 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="item_assign_user">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm4" value="item_assign_user">
             <label class="form-check-label">Assign User</label>
           </div>
         </div>
 
         <div class="col-sm-2 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="item_assign_location">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm5" value="item_assign_location">
             <label class="form-check-label">Assign Location</label>
           </div>
         </div>
@@ -88,14 +88,14 @@
 
         <div class="col-sm-2 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="profile_view">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm6" value="profile_view">
             <label class="form-check-label">View</label>
           </div>
         </div>
 
         <div class="col-sm-2 p-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="check1" name="perms" value="pofile_edit">
+            <input class="form-check-input" type="checkbox" id="check1" name="perm7" value="pofile_edit">
             <label class="form-check-label">Edit</label>
           </div>
         </div>

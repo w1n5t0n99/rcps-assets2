@@ -81,6 +81,35 @@ pub async fn find_roles(db: &DbConn) -> Result<Vec<roles::Model>, DbErr> {
     Ok(roles)
 }
 
+pub async fn insert_role_with_permissions(db: &DbConn, name: String, description: String, perms: Vec<String>) -> Result<(), DbErr> {
+    let transaction = db.begin().await?;
+
+     // insert roles
+     roles::ActiveModel {
+        id: Set(name.clone()),
+        description: Set(description),
+        created_at: Set(chrono::offset::Utc::now().naive_utc()),
+        updated_at: Set(chrono::offset::Utc::now().naive_utc()),
+        is_admin: Set(false),
+    }
+    .insert(&transaction)
+    .await?;
+
+    // insert role/permissions
+    for p in perms {
+        roles_permissions::ActiveModel {
+            perm_id: Set(p),
+            role_id: Set(name.clone())
+        }
+        .insert(&transaction)
+        .await?;
+    }
+
+    transaction.commit().await?;
+
+    Ok(())
+}
+
 #[derive(Debug, serde::Serialize)]
 pub struct BulkInsert {
     pub total: usize,

@@ -1,18 +1,20 @@
 use actix_web::error::InternalError;
 use actix_web::http::header::ContentType;
 use actix_web::{get, post, web, Responder, HttpResponse};
+use actix_web_flash_messages::FlashMessage;
 use actix_web_grants::proc_macro::has_permissions;
+use dashmap::DashSet;
+use futures::TryFutureExt;
 use sea_orm::DbConn;
 use crate::db::*;
 use crate::auth::Client;
 use crate::permissions::PermissionsCollection;
-use crate::utils::{e500, see_other};
+use crate::utils::{e500, see_other, DbErrbExt, e400};
 use sailfish::TemplateOnce;
 use crate::components::Link;
 use crate::components::navbar::{NavBar, NavBarBuilder};
 use crate::components::titlebar::{TitleBar, TitleBarBuilder};
-use std::fmt;
-use serde::de::{self, value, Deserialize, Deserializer, Visitor, SeqAccess};
+use validator::{Validate, ValidateArgs, ValidationError};
 
 use ::entity::{roles};
 use ::entity::prelude::{Roles};
@@ -60,46 +62,103 @@ pub async fn add_role_form(client: web::ReqData<Client>) -> Result<impl Responde
 }
 
 //=================================================================
-
-#[derive(serde::Deserialize)]
-pub struct FormData {
-    name: String,
-    description: String,
-    #[serde(deserialize_with = "string_or_vec")]
-    perms: Vec<String>,
-}
-
-fn string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
-    where D: Deserializer<'de>
-{
-    struct StringOrVec;
-
-    impl<'de> Visitor<'de> for StringOrVec {
-        type Value = Vec<String>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("string or list of strings")
-        }
-
-        fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
-            where E: de::Error
-        {
-            Ok(vec![s.to_owned()])
-        }
-
-        fn visit_seq<S>(self, seq: S) -> Result<Self::Value, S::Error>
-            where S: SeqAccess<'de>
-        {
-            Deserialize::deserialize(value::SeqAccessDeserializer::new(seq))
-        }
+fn validate(value: &String, arg: &DashSet<String>) -> Result<(), ValidationError> {
+    if arg.contains(value) == false {
+        return Err(ValidationError::new("valid permission not found"));
     }
 
-    deserializer.deserialize_any(StringOrVec)
+    Ok(())
+}
+
+#[derive(serde::Deserialize, Validate)]
+pub struct FormData {
+    #[validate(length(min = 1))]
+    name: String,
+    description: String,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm0: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm1: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm2: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm3: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm4: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm5: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm6: Option<String>,
+    #[validate(custom(function = "validate", arg = "&'v_a DashSet<String>"))]
+    perm7: Option<String>,
+}
+
+impl FormData {
+    pub fn get_permissions(&self) -> Vec<String> {
+        let mut perms = Vec::with_capacity(8);
+
+        if let Some(ref p) = self.perm0 {
+            perms.push(p.clone());
+        }
+
+        if let Some(ref p) = self.perm1 {
+            perms.push(p.clone());
+        }
+
+        if let Some(ref p) = self.perm2 {
+            perms.push(p.clone());
+
+        }
+        if let Some(ref p) = self.perm3 {
+            perms.push(p.clone());
+        }
+
+        if let Some(ref p) = self.perm4 {
+            perms.push(p.clone());
+        }
+
+        if let Some(ref p) = self.perm5 {
+            perms.push(p.clone());
+        }
+
+        if let Some(ref p) = self.perm6 {
+            perms.push(p.clone());
+        }
+        
+        if let Some(ref p) = self.perm7 {
+            perms.push(p.clone());
+        }
+
+        perms
+    }
 }
 
 #[post("/roles/add")]
 #[has_permissions("roles_create")]
 pub async fn add_role(form: web::Form<FormData>, db: web::Data<DbConn>, perms: web::Data<PermissionsCollection>) -> Result<impl Responder, actix_web::Error> { 
+    if form.validate_args((
+        &perms.user_collections,
+        &perms.user_collections,
+        &perms.user_collections,
+        &perms.user_collections,
+        &perms.user_collections,
+        &perms.user_collections,
+        &perms.user_collections,
+        &perms.user_collections,
+    )).is_err() {
+        FlashMessage::error("Invalid form data.").send();
+        return Ok(see_other("/account/roles"));
+    }
 
+    let perms = form.get_permissions();
+    insert_role_with_permissions(&db, form.name.clone(), form.description.clone(), perms)
+        .await
+        .map_err(|e| {
+            if e.is_unique_key_constraint() {FlashMessage::error("Duplicate roles found").send(); e400(e) }
+            else { e500(e) }
+        })?;
+    
+    // TODO: change flash message type for success
+    FlashMessage::error("Role added").send();
     Ok(see_other("/account/roles"))
 }
