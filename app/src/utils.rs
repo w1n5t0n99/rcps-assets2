@@ -1,7 +1,7 @@
 use actix_web::rt::task::JoinHandle;
 use actix_web::http::header::LOCATION;
 use actix_web::HttpResponse;
-use validator::ValidationErrors;
+use validator::{ValidationErrors, ValidationErrorsKind};
 use sea_orm::{DbErr, RuntimeErr};
 
 // Return an opaque 500 while preserving the error root's cause for logging.
@@ -67,6 +67,7 @@ pub fn error_chain_fmt(
 
 pub trait ValidationErrorsExt {
     fn is_field_invalid(&self, field: &str) -> bool;
+    fn is_struct_invalid(&self, code: &str) -> bool;
 }
 
 impl ValidationErrorsExt for ValidationErrors
@@ -75,6 +76,25 @@ impl ValidationErrorsExt for ValidationErrors
         let emap = self.errors();
         if let Some(_e) = emap.get(field) {
             return true;
+        }
+
+        false
+    }
+
+    fn is_struct_invalid(&self, code: &str) -> bool {
+        let emap = self.errors();
+        if let Some(e) = emap.get("__all__") {
+            match e {
+                ValidationErrorsKind::Struct(_) => { },
+                ValidationErrorsKind::List(_) => { },
+                ValidationErrorsKind::Field(fields) => {
+                    for f in fields {
+                        if f.code == code {
+                            return true;
+                        }
+                    }
+                }
+            }
         }
 
         false
