@@ -26,6 +26,10 @@ impl PermissionsCollection {
         admin_collections.insert("user_delete".to_string());
         admin_collections.insert("view_settings".to_string());
         admin_collections.insert("edit_settings".to_string());
+        admin_collections.insert("roles_view".to_string());
+        admin_collections.insert("roles_edit".to_string());
+        admin_collections.insert("roles_create".to_string());
+        admin_collections.insert("roles_delete".to_string());
 
         PermissionsCollection {
             user_collections,

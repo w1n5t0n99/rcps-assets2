@@ -3,6 +3,7 @@ use ::entity::{user, roles, permissions, roles_permissions};
 use ::entity::prelude::{User, Roles, Permissions, RolesPermissions};
 use secrecy::{Secret, ExposeSecret};
 
+use crate::domain::role_form::RoleForm;
 use crate::utils::{error_chain_fmt};
 
 pub async fn find_user(email: &str, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
@@ -81,13 +82,13 @@ pub async fn find_roles(db: &DbConn) -> Result<Vec<roles::Model>, DbErr> {
     Ok(roles)
 }
 
-pub async fn insert_role_with_permissions(db: &DbConn, name: String, description: String, perms: Vec<String>) -> Result<(), DbErr> {
+pub async fn insert_role_with_permissions(db: &DbConn, value: RoleForm) -> Result<(), DbErr> {
     let transaction = db.begin().await?;
 
      // insert roles
      roles::ActiveModel {
-        id: Set(name.clone()),
-        description: Set(description),
+        id: Set(value.name.clone()),
+        description: Set(value.description.clone()),
         created_at: Set(chrono::offset::Utc::now().naive_utc()),
         updated_at: Set(chrono::offset::Utc::now().naive_utc()),
         is_admin: Set(false),
@@ -96,10 +97,11 @@ pub async fn insert_role_with_permissions(db: &DbConn, name: String, description
     .await?;
 
     // insert role/permissions
+    let perms = value.get_permissions_vec();
     for p in perms {
         roles_permissions::ActiveModel {
             perm_id: Set(p),
-            role_id: Set(name.clone())
+            role_id: Set(value.name.clone())
         }
         .insert(&transaction)
         .await?;

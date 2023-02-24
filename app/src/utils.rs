@@ -92,6 +92,43 @@ impl DbErrbExt for DbErr {
         const POSTGRES_CODE: &'static str = "23505";
 
         match self {
+            DbErr::Exec(RuntimeErr::SqlxError(error)) => {
+                match error {
+                    sqlx::Error::Database(e) => {
+                        if let Some(code) = e.code() {                       
+                            if code == SQLITE_CODE || code == POSTGRES_CODE {
+                                return true;
+                            }
+                        }
+
+                        false
+                    }
+                    _ => false,
+                } 
+            }
+            DbErr::Query(RuntimeErr::SqlxError(error)) => {
+                match error {
+                    sqlx::Error::Database(e) => {
+                        if let Some(code) = e.code() {                       
+                            if code == SQLITE_CODE || code == POSTGRES_CODE {
+                                return true;
+                            }
+                        }
+
+                        false
+                    }
+                    _ => false,
+                } 
+            }
+            _ => false,
+        }
+    }
+
+    fn is_foreign_key_constraint(&self) -> bool {
+        const SQLITE_CODE: &'static str = "787";
+        const POSTGRES_CODE: &'static str = "23503";
+
+        match self {
             DbErr::Exec(RuntimeErr::SqlxError(error)) => match error {
                 sqlx::Error::Database(e) => {
                     if let Some(code) = e.code() {
@@ -103,16 +140,7 @@ impl DbErrbExt for DbErr {
                 }
                 _ => false,
             } 
-            _ => false,
-        }
-    }
-
-    fn is_foreign_key_constraint(&self) -> bool {
-        const SQLITE_CODE: &'static str = "787";
-        const POSTGRES_CODE: &'static str = "23503";
-
-        match self {
-            DbErr::Exec(RuntimeErr::SqlxError(error)) => match error {
+            DbErr::Query(RuntimeErr::SqlxError(error)) => match error {
                 sqlx::Error::Database(e) => {
                     if let Some(code) = e.code() {
                         if code == SQLITE_CODE || code == POSTGRES_CODE {
