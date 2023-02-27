@@ -6,6 +6,16 @@
   }
 </style>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script>
+   $(document).ready(function () {
+    $('.fixed-rows').find('.form-check-input').change(function() {
+	  var checkbox = $(this);
+	  checkbox.prop( "checked", true );
+    });
+  });
+</script>
+
 <head>
   <title>Role Configuration</title>
   <meta charset="utf-8">
@@ -18,16 +28,17 @@
   <% include!("title-bar.stpl"); %>
   <% include!("nav-bar.stpl"); %>
   <div class="container-fluid mt-3">
-    <form id="role_form" method="post" action="/account/roles/add">
+    <form id="role_form" method="post" action="/account/roles/<%= name %>/edit">
     <div class="container-sm">
       <div class="row">
         <div class="col-sm-1 p-3"></div>
         <div class="col-sm-2 p-3"><h5><%= name %></h5></div>
         <input type="hidden" name="name" value="<%= name %>" autocomplete="off" />
-        <div class="col-sm-4 p-3"><input type="text" class="form-control" placeholder="<%= description %>" name="description" autocomplete="off"></div>
+        <div class="col-sm-4 p-3"><input type="text" class="form-control" placeholder="Description" value="<%= description %>" name="description" autocomplete="off"></div>
       </div>
     </div>
     <% if perms.contains("user_view") { %>
+      <div class="fixed-rows">
         <div class="container-sm border">
             <div class="row">
               <div class="col-sm-1 p-3"></div>
@@ -59,9 +70,11 @@
               </div>
             </div>
           </div>
+        </div>
     <% } %> 
 
     <% if perms.contains("roles_view") { %>
+      <div class="fixed-rows">
         <div class="container-sm border mt-3">
             <div class="row">
               <div class="col-sm-1 p-3"></div>
@@ -93,6 +106,7 @@
               </div>
             </div>
           </div>
+        </div>
     <% } %> 
 
     <div class="container-sm border mt-3">
@@ -113,9 +127,9 @@
         <div class="col-sm-1 p-3">
           <div class="form-check">
             <% if perms.contains("item_create") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_create" checked>
+                <input class="form-check-input" type="checkbox" name="perm1" value="item_create" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_create">
+                <input class="form-check-input" type="checkbox" name="perm1" value="item_create">
             <% } %> 
             <label class="form-check-label">Add</label>
           </div>
@@ -123,9 +137,9 @@
         <div class="col-sm-1 p-3">
           <div class="form-check">
             <% if perms.contains("item_edit") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_edit" checked>
+                <input class="form-check-input" type="checkbox" name="perm2" value="item_edit" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_edit">
+                <input class="form-check-input" type="checkbox" name="perm2" value="item_edit">
             <% } %> 
             <label class="form-check-label">Edit</label>
           </div>
@@ -133,9 +147,9 @@
         <div class="col-sm-1 p-3">
           <div class="form-check">
             <% if perms.contains("item_delete") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_delete" checked>
+                <input class="form-check-input" type="checkbox" name="perm3" value="item_delete" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_delete">
+                <input class="form-check-input" type="checkbox" name="perm3" value="item_delete">
             <% } %> 
             <label class="form-check-label">Delete</label>
           </div>
@@ -152,9 +166,9 @@
         <div class="col-sm-2 p-3">
           <div class="form-check">
             <% if perms.contains("item_assign_user") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_user" checked>
+                <input class="form-check-input" type="checkbox" name="perm4" value="item_assign_user" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_user">
+                <input class="form-check-input" type="checkbox" name="perm4" value="item_assign_user">
             <% } %> 
             <label class="form-check-label">Assign User</label>
           </div>
@@ -163,9 +177,9 @@
         <div class="col-sm-2 p-3">
           <div class="form-check">
             <% if perms.contains("item_assign_location") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_location" checked>
+                <input class="form-check-input" type="checkbox" name="perm5" value="item_assign_location" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_location">
+                <input class="form-check-input" type="checkbox" name="perm5" value="item_assign_location">
             <% } %> 
             <label class="form-check-label">Assign Location</label>
           </div>
@@ -182,9 +196,9 @@
         <div class="col-sm-2 p-3">
           <div class="form-check">
             <% if perms.contains("profile_view") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="profile_view" checked>
+                <input class="form-check-input" type="checkbox" name="perm6" value="profile_view" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="profile_view">
+                <input class="form-check-input" type="checkbox" name="perm6" value="profile_view">
             <% } %> 
             <label class="form-check-label">View</label>
           </div>
@@ -193,9 +207,9 @@
         <div class="col-sm-2 p-3">
           <div class="form-check">
             <% if perms.contains("pofile_edit") { %>
-                <input class="form-check-input" type="checkbox" name="perm0" value="pofile_edit" checked>
+                <input class="form-check-input" type="checkbox" name="perm7" value="pofile_edit" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="pofile_edit">
+                <input class="form-check-input" type="checkbox" name="perm7" value="pofile_edit">
             <% } %> 
             <label class="form-check-label">Edit</label>
           </div>
