@@ -4,6 +4,7 @@ use ::entity::prelude::{User, Roles, Permissions, RolesPermissions};
 use secrecy::{Secret, ExposeSecret};
 
 use crate::domain::role_form::RoleForm;
+use crate::domain::delete_role_form::DeleteRoleForm;
 use crate::utils::{error_chain_fmt};
 
 pub async fn find_user(email: &str, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
@@ -74,6 +75,24 @@ pub async fn find_user_permissions(user_id: uuid::Uuid, db: &DbConn) -> Result<(
     Err(DbErr::RecordNotFound("no user or roles found".to_string()))
 }
 
+pub async fn find_role_permissions(role_id: String, db: &DbConn) -> Result<Vec<String>, DbErr> {
+    let perms = Roles::find_by_id(role_id)
+    .find_also_related(Permissions)
+    .all(db)
+    .await?;
+
+    let permissions: Vec<String> = perms.iter()
+        .filter_map(|(_, perm)| 
+            match perm {
+                Some(perm) => Some(perm.id.to_string()),
+                None => None,            
+            }
+        )
+        .collect();
+
+    Ok(permissions)
+}
+
 pub async fn find_roles(db: &DbConn) -> Result<Vec<roles::Model>, DbErr> {
     let roles = Roles::find()
         .all(db)
@@ -110,6 +129,11 @@ pub async fn insert_role_with_permissions(db: &DbConn, value: RoleForm) -> Resul
     transaction.commit().await?;
 
     Ok(())
+}
+
+pub async fn delete_role(db: &DbConn, value: DeleteRoleForm) -> Result<DeleteResult, DbErr> {
+     // delete role
+     Roles::delete_by_id(value.row_id).exec(db).await
 }
 
 #[derive(Debug, serde::Serialize)]

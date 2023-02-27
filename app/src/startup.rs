@@ -126,7 +126,8 @@ fn init(cfg: &mut web::ServiceConfig) {
             .service(account::roles::view_roles)
             .service(account::add_role::add_role_form)
             .service(account::add_role::add_role)
-
+            .service(account::delete_role::delete_role)
+            .service(account::edit_role::edit_role_form)
         );
 
     cfg.service(

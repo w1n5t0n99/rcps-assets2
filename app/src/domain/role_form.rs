@@ -5,35 +5,35 @@ use validator::{Validate, ValidationError};
 fn validate_permissions(value: &RoleForm, arg: &DashSet<String>) -> Result<(), ValidationError> {
     
     if let Some(ref v) = value.perm0 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
     
     if let Some(ref v) = value.perm1 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     if let Some(ref v) = value.perm2 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     if let Some(ref v) = value.perm3 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     if let Some(ref v) = value.perm4 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     if let Some(ref v) = value.perm5 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     if let Some(ref v) = value.perm6 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     if let Some(ref v) = value.perm7 {
-        if arg.contains(v) == false { return Err(ValidationError::new("valid permission not found")); }
+        if arg.contains(v) == false { return Err(ValidationError::new("invalid_permission")); }
     }
 
     Ok(())

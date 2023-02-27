@@ -2,11 +2,12 @@ use actix_web::http::header::ContentType;
 use actix_web::{get, post, web, Responder, HttpResponse};
 use actix_web_flash_messages::FlashMessage;
 use actix_web_grants::proc_macro::has_permissions;
+use dashmap::DashSet;
 use sea_orm::DbConn;
 use sailfish::TemplateOnce;
-use validator::{Validate, ValidateArgs, ValidationError};
+use validator::{Validate, ValidateArgs, ValidationError, validate_must_match};
 
-use crate::db::*;
+use crate::db;
 use crate::auth::Client;
 use crate::permissions::PermissionsCollection;
 use crate::utils::{e500, see_other, DbErrbExt, ValidationErrorsExt};
@@ -17,16 +18,18 @@ use crate::domain::role_form::RoleForm;
 
 
 #[derive(TemplateOnce)]
-#[template(path = "add-role.stpl")]
-struct ListPage {
+#[template(path = "edit-role.stpl")]
+struct EditPage {
     pub navbar: NavBar,
     pub titlebar: TitleBar,
+    pub perms: DashSet<String>,
 }
 
-#[get("/roles/add")]
-#[has_permissions("roles_create")]
-pub async fn add_role_form(client: web::ReqData<Client>) -> Result<impl Responder, actix_web::Error> {
+#[get("/roles/{id}/edit")]
+#[has_permissions("roles_edit")]
+pub async fn edit_role_form(path: web::Path<String>, client: web::ReqData<Client>, dbconn: web::Data<DbConn>) -> Result<impl Responder, actix_web::Error> {
     let client = client.into_inner();
+    let role_id = path.into_inner(); 
 
     let navbar = NavBarBuilder::default()
         .sign_out_url(client.url_to("sign_out"))
@@ -40,14 +43,18 @@ pub async fn add_role_form(client: web::ReqData<Client>) -> Result<impl Responde
         .map_err(e500)?;
 
     let titlebar = TitleBarBuilder::default()
-        .title("Add New Role".to_string())
+        .title("Role Configuration".to_string())
         .links(Vec::new())
         .build()
         .map_err(e500)?;
 
-    let body = ListPage {
+    let perms = db::find_role_permissions(role_id, &dbconn).await.map_err(e500)?;
+    let perms: DashSet<String> = DashSet::from_iter(perms);
+
+    let body = EditPage {
             navbar,
             titlebar,
+            perms,
         }
         .render_once()
         .map_err(e500)?;
@@ -58,30 +65,13 @@ pub async fn add_role_form(client: web::ReqData<Client>) -> Result<impl Responde
 }
 
 //=================================================================
-#[post("/roles/add")]
-#[has_permissions("roles_create")]
-pub async fn add_role(form: web::Form<RoleForm>, db: web::Data<DbConn>, perms: web::Data<PermissionsCollection>) -> Result<impl Responder, actix_web::Error> { 
+#[post("/roles/{id}/edit")]
+#[has_permissions("roles_edit")]
+pub async fn edit_role(form: web::Form<RoleForm>, dbconn: web::Data<DbConn>, perms: web::Data<PermissionsCollection>) -> Result<impl Responder, actix_web::Error> { 
     let res = form.validate_args(&perms.user_collections);
-    if let Err(ref e) = res {
-        if e.is_field_invalid("name") { 
-            FlashMessage::error("Cannot Add Role - Invalid Name").send();
-            return Ok(see_other("/account/roles"));
-        }
-    }
-
-    res.map_err(e500)?;
-
-    let res = insert_role_with_permissions(&db, form.into_inner()).await;
-    if let Err(ref e) = res {
-        if e.is_unique_key_constraint() {
-            FlashMessage::error("Cannot Add Role - Duplicate Name Found").send();
-            return Ok(see_other("/account/roles"));
-        }
-    }
-
-    res.map_err(e500)?;
+    
     
     // TODO: change flash message type for success
-    FlashMessage::error("Role Added").send();
+    FlashMessage::error("Role Updated").send();
     Ok(see_other("/account/roles"))
 }
