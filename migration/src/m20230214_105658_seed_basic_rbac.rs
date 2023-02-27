@@ -69,13 +69,6 @@ impl MigrationTrait for Migration {
             .await?;
         }
 
-        roles_permissions::ActiveModel {
-            perm_id: Set("profile_view".to_string()),
-            role_id: Set("inactive".to_string())
-        }
-        .insert(&transaction)
-        .await?;
-
         transaction.commit().await?;
 
        Ok(())

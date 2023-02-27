@@ -75,11 +75,17 @@ pub async fn find_user_permissions(user_id: uuid::Uuid, db: &DbConn) -> Result<(
     Err(DbErr::RecordNotFound("no user or roles found".to_string()))
 }
 
-pub async fn find_role_permissions(role_id: String, db: &DbConn) -> Result<Vec<String>, DbErr> {
+pub async fn find_role_permissions(role_id: String, db: &DbConn) -> Result<(roles::Model, Vec<String>), DbErr> {
     let perms = Roles::find_by_id(role_id)
     .find_also_related(Permissions)
     .all(db)
     .await?;
+
+    let role = perms
+        .first()
+        .ok_or(DbErr::RecordNotFound("no role found".to_string()))?
+        .0
+        .to_owned();
 
     let permissions: Vec<String> = perms.iter()
         .filter_map(|(_, perm)| 
@@ -90,7 +96,7 @@ pub async fn find_role_permissions(role_id: String, db: &DbConn) -> Result<Vec<S
         )
         .collect();
 
-    Ok(permissions)
+    Ok((role, permissions))
 }
 
 pub async fn find_roles(db: &DbConn) -> Result<Vec<roles::Model>, DbErr> {

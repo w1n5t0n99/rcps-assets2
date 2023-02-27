@@ -22,6 +22,8 @@ use crate::domain::role_form::RoleForm;
 struct EditPage {
     pub navbar: NavBar,
     pub titlebar: TitleBar,
+    pub name: String,
+    pub description: String,
     pub perms: DashSet<String>,
 }
 
@@ -49,11 +51,15 @@ pub async fn edit_role_form(path: web::Path<String>, client: web::ReqData<Client
         .map_err(e500)?;
 
     let perms = db::find_role_permissions(role_id, &dbconn).await.map_err(e500)?;
-    let perms: DashSet<String> = DashSet::from_iter(perms);
+    let name = perms.0.id;
+    let description = perms.0.description;
+    let perms: DashSet<String> = DashSet::from_iter(perms.1);
 
     let body = EditPage {
             navbar,
             titlebar,
+            name,
+            description,
             perms,
         }
         .render_once()

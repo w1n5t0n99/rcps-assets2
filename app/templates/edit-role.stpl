@@ -22,8 +22,9 @@
     <div class="container-sm">
       <div class="row">
         <div class="col-sm-1 p-3"></div>
-        <div class="col-sm-2 p-3"><input type="text" class="form-control" placeholder="Name" name="name" autocomplete="off"></div>
-        <div class="col-sm-4 p-3"><input type="text" class="form-control" placeholder="Description" name="description" autocomplete="off"></div>
+        <div class="col-sm-2 p-3"><h5><%= name %></h5></div>
+        <input type="hidden" name="name" value="<%= name %>" autocomplete="off" />
+        <div class="col-sm-4 p-3"><input type="text" class="form-control" placeholder="<%= description %>" name="description" autocomplete="off"></div>
       </div>
     </div>
     <% if perms.contains("user_view") { %>
@@ -61,7 +62,7 @@
     <% } %> 
 
     <% if perms.contains("roles_view") { %>
-        <div class="container-sm border">
+        <div class="container-sm border mt-3">
             <div class="row">
               <div class="col-sm-1 p-3"></div>
               <div class="col-sm-1 p-3">Roles:</div>
@@ -94,7 +95,7 @@
           </div>
     <% } %> 
 
-    <div class="container-sm border">
+    <div class="container-sm border mt-3">
       <div class="row">
         <div class="col-sm-1 p-3"></div>
         <div class="col-sm-1 p-3">Items:</div>
@@ -104,7 +105,7 @@
             <% if perms.contains("item_view") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="item_view" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_view" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="item_view">
             <% } %> 
             <label class="form-check-label">View</label>
           </div>
@@ -114,7 +115,7 @@
             <% if perms.contains("item_create") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="item_create" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_create" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="item_create">
             <% } %> 
             <label class="form-check-label">Add</label>
           </div>
@@ -124,7 +125,7 @@
             <% if perms.contains("item_edit") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="item_edit" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_edit" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="item_edit">
             <% } %> 
             <label class="form-check-label">Edit</label>
           </div>
@@ -134,7 +135,7 @@
             <% if perms.contains("item_delete") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="item_delete" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_delete" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="item_delete">
             <% } %> 
             <label class="form-check-label">Delete</label>
           </div>
@@ -153,7 +154,7 @@
             <% if perms.contains("item_assign_user") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_user" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_user" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_user">
             <% } %> 
             <label class="form-check-label">Assign User</label>
           </div>
@@ -164,7 +165,7 @@
             <% if perms.contains("item_assign_location") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_location" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_location" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="item_assign_location">
             <% } %> 
             <label class="form-check-label">Assign Location</label>
           </div>
@@ -183,7 +184,7 @@
             <% if perms.contains("profile_view") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="profile_view" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="profile_view" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="profile_view">
             <% } %> 
             <label class="form-check-label">View</label>
           </div>
@@ -194,7 +195,7 @@
             <% if perms.contains("pofile_edit") { %>
                 <input class="form-check-input" type="checkbox" name="perm0" value="pofile_edit" checked>
             <% } else { %> 
-                <input class="form-check-input" type="checkbox" name="perm0" value="pofile_edit" checked>
+                <input class="form-check-input" type="checkbox" name="perm0" value="pofile_edit">
             <% } %> 
             <label class="form-check-label">Edit</label>
           </div>
@@ -205,7 +206,7 @@
 
     <div class="container-sm p-3">
       <div class="row justify-content-center">
-        <% if perms.contains("user_view") == false { %>
+        <% if name.eq("admin") == false && name.eq("inactive") == false { %>
             <div class="col-sm-12 p-3"><button type="submit" class="btn btn-primary">Save</button></div>
         <% } %> 
     </div>
