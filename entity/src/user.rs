@@ -13,28 +13,11 @@ pub struct Model {
     pub email: String,
     pub photo: String,
     pub password_hash: String,
-    pub created_at: DateTime,
-    pub updated_at: DateTime,
-    pub password_change: bool,
-    pub role: String,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::roles::Entity",
-        from = "Column::Role",
-        to = "super::roles::Column::Id",
-        on_update = "Cascade",
-        on_delete = "NoAction"
-    )]
-    Roles,
-}
-
-impl Related<super::roles::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Roles.def()
-    }
-}
+pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}

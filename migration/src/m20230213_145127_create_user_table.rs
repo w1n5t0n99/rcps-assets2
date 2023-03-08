@@ -22,9 +22,8 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(User::Email).string().not_null().unique_key())
                     .col(ColumnDef::new(User::Photo).string().not_null().default("default.png"))
                     .col(ColumnDef::new(User::PasswordHash).string().not_null())
-                    .col(ColumnDef::new(User::CreatedAt).timestamp().not_null())
-                    .col(ColumnDef::new(User::UpdatedAt).timestamp().not_null())
-                    .col(ColumnDef::new(User::PasswordChange).boolean().not_null().default(false))
+                    .col(ColumnDef::new(User::CreatedAt).timestamp_with_time_zone().not_null())
+                    .col(ColumnDef::new(User::UpdatedAt).timestamp_with_time_zone().not_null())
                     .to_owned(),
             )
             .await
@@ -48,5 +47,4 @@ enum User {
     PasswordHash,
     CreatedAt,
     UpdatedAt,
-    PasswordChange,
 }

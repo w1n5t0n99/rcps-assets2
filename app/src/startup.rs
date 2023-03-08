@@ -17,9 +17,9 @@ use tracing_actix_web::TracingLogger;
 use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::auth::{reject_anonymous_users, extract_user_permissions, check_user_password_status};
-use crate::permissions::PermissionsCollection;
-use crate::routes::*;
+//use crate::auth::{reject_anonymous_users};
+use crate::routes;
+use crate::api;
 
 
 pub struct Application {
@@ -30,7 +30,6 @@ pub struct Application {
 impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
         let db_conn = get_database_connection(&configuration.database).await;
-        let permission_collection = PermissionsCollection::create_collection();
 
         let address = format!("{}:{}", configuration.application.host, configuration.application.port);
         let listener = TcpListener::bind(&address)?;
@@ -41,7 +40,6 @@ impl Application {
             db_conn,
             configuration.application.base_url,
             configuration.application.hmac_secret,
-            permission_collection,
         )
         .await?;
 
@@ -73,31 +71,16 @@ async fn run(
     db_connection: DatabaseConnection,
     _base_url: String,
     hmac_secret: Secret<String>,
-    permission_collection: PermissionsCollection,
 ) -> Result<Server, anyhow::Error> {
     let db_connection = web::Data::new(db_connection);
-    let permission_collection = web::Data::new(permission_collection);
     let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
     let message_store = CookieMessageStore::builder(secret_key.clone()).build();
     let message_framework = FlashMessagesFramework::builder(message_store).build();
    
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(message_framework.clone())
-            .wrap(SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
-                .session_lifecycle(PersistentSession::default().session_ttl(Duration::hours(8)))
-                .build()
-            )
             .wrap(TracingLogger::default())
-            .wrap(
-                ErrorHandlers::new()
-                    .handler(StatusCode::BAD_REQUEST, errors::render_400)
-                    .handler(StatusCode::FORBIDDEN, errors::render_403)
-                    .handler(StatusCode::NOT_FOUND, errors::render_404)
-                    .handler(StatusCode::INTERNAL_SERVER_ERROR, errors::render_500)
-            )
             .app_data(db_connection.clone())
-            .app_data(permission_collection.clone())
             .configure(init)
     })
     .listen(listener)?
@@ -106,41 +89,12 @@ async fn run(
 }
 
 fn init(cfg: &mut web::ServiceConfig) {
-    cfg.service(health_check::health_check);
+    cfg.service(routes::health_check::health_checker);
     cfg.service(actix_files::Files::new("/static", "./app/static"));
 
     cfg.service(
-        web::scope("/groups")
-            .wrap(GrantsMiddleware::with_extractor(extract_user_permissions))
-            .wrap(from_fn(check_user_password_status))
-            .wrap(from_fn(reject_anonymous_users))
-            .service(asset_items::get_asset_items)
-        );
-
-    cfg.service(
-        web::scope("/account")
-            .wrap(GrantsMiddleware::with_extractor(extract_user_permissions))
-            .wrap(from_fn(check_user_password_status))
-            .wrap(from_fn(reject_anonymous_users))
-            .service(account::users::view_users)
-            .service(account::roles::view_roles)
-            .service(account::add_role::add_role_form)
-            .service(account::add_role::add_role)
-            .service(account::delete_role::delete_role)
-            .service(account::edit_role::edit_role_form)
-            .service(account::edit_role::edit_role)
-        );
-
-    cfg.service(
-        web::scope("/users")
-            .service(login::view_sign_in)
-            .service(login::post_sign_in)
-            .service(web::scope("/{id}")
-                .wrap(from_fn(reject_anonymous_users))
-                .service(password::view_edit_password)
-                .service(password::post_edit_password)
-                .service(logout::sign_out)
-            )
-        );
+        web::scope("/api")
+            .service(api::health_check::health_checker)
+        );   
 
 }

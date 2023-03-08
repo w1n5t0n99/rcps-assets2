@@ -2,14 +2,11 @@ mod configuration;
 mod telemetry;
 mod startup;
 mod routes;
+mod api;
 mod auth;
-mod components;
 mod filesystem;
 mod session_state;
 mod utils;
-mod db;
-mod permissions;
-mod domain;
 
 
 #[tokio::main]
