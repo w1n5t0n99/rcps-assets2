@@ -7,6 +7,8 @@ use actix_web::{http, web, FromRequest, HttpMessage, HttpRequest};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::Serialize;
 
+use crate::auth::jwt::TokenClaims;
+
 
 #[derive(Debug, Serialize)]
 struct ErrorResponse {
@@ -29,6 +31,7 @@ impl FromRequest for JwtMiddleware {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let decoding_key = req.app_data::<web::Data<DecodingKey>>().unwrap();
 
         let token = req
             .cookie("token")
@@ -44,10 +47,31 @@ impl FromRequest for JwtMiddleware {
                 status: "fail".to_string(),
                 message: "You are not logged in, please provide token".to_string(),
             };
-            
+
             return ready(Err(ErrorUnauthorized(json_error)));
         }
 
-        todo!()
+        let claims = match decode::<TokenClaims>(
+            &token.unwrap(),
+            &decoding_key,
+            &Validation::default(),
+        ) {
+            Ok(c) => c.claims,
+            Err(_) => {
+                let json_error = ErrorResponse {
+                    status: "fail".to_string(),
+                    message: "Invalid token".to_string(),
+                };
+                
+                return ready(Err(ErrorUnauthorized(json_error)));
+            }
+        };
+
+        // TODO: insert client struct instead of plain uuid
+        let user_id = uuid::Uuid::parse_str(claims.sub.as_str()).unwrap();
+        req.extensions_mut()
+            .insert::<uuid::Uuid>(user_id.to_owned());
+
+        ready(Ok(JwtMiddleware { user_id }))
     }
 }

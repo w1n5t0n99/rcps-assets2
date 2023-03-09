@@ -1,4 +1,3 @@
-/*
 use anyhow::Context;
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHash, PasswordHasher, PasswordVerifier, Version};
@@ -6,7 +5,7 @@ use secrecy::{ExposeSecret, Secret};
 use sea_orm::DbConn;
 
 use crate::utils::spawn_blocking_with_tracing;
-use crate::db::{find_user, update_user_password};
+use crate::db::user_db::*;
 
 
 const DEFAULT_PASSWORD_HASH: &'static str = "$argon2id$v=19$m=15000,t=2,p=1$gZiV/M1gPc22ElAH/Jh1Hw$CWOrkoo7oJBQ/iyh7uJ0LO2aLEfrHwTWllSAxT0zRno";
@@ -43,7 +42,7 @@ async fn get_stored_credentials(
     db_conn: &DbConn,
 ) -> Result<Option<(uuid::Uuid, Secret<String>)>, anyhow::Error> {
 
-    let user = find_user(email, db_conn)
+    let user = select_user_from_email(email, db_conn)
         .await
         .context("Failed to lookup credentials")?;
 
@@ -109,4 +108,3 @@ pub async fn change_password(
     Ok(())
 }
 
-*/

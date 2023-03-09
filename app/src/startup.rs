@@ -10,6 +10,7 @@ use actix_web_grants::GrantsMiddleware;
 use actix_web_lab::middleware::from_fn;
 use actix_files;
 use actix_web::cookie::{Key, time::Duration};
+use jsonwebtoken::{DecodingKey, EncodingKey};
 use reqwest::StatusCode;
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
 use secrecy::{Secret, ExposeSecret};
@@ -76,11 +77,16 @@ async fn run(
     let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
     let message_store = CookieMessageStore::builder(secret_key.clone()).build();
     let message_framework = FlashMessagesFramework::builder(message_store).build();
+
+    let decoding_key = web::Data::new(DecodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
+    let encoding_key = web::Data::new(EncodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
    
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
             .app_data(db_connection.clone())
+            .app_data(encoding_key.clone())
+            .app_data(decoding_key.clone())
             .configure(init)
     })
     .listen(listener)?
