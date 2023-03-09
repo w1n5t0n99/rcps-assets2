@@ -101,6 +101,7 @@ fn init(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
             .service(api::health_check::health_checker)
+            .service(api::auth::register::register_user_handler)
         );   
 
 }

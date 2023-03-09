@@ -3,6 +3,9 @@ use sea_orm::DbConn;
 use secrecy::Secret;
 use serde::Deserialize;
 
+use crate::error_responses::*;
+use crate::auth::password::{Credentials, AuthError, validate_credentials};
+
 
 #[derive(Debug, Deserialize)]
 pub struct LoginUserModel {
@@ -19,9 +22,21 @@ pub struct LoginUserModel {
 #[post("/auth/login")]
 async fn login_user_handler(
     body: web::Json<LoginUserModel>,
-    data: web::Data<DbConn>,
-) -> impl Responder {
+    db_conn: web::Data<DbConn>,
+) -> Result<impl Responder, actix_web::Error> {
 
+    let credentials = Credentials {
+        email: body.email.clone(),
+        password: body.password.clone(),
+    };
 
-    HttpResponse::Ok().json(serde_json::json!({"status": "success", "message": "MESSAGE"}))
+    tracing::Span::current().record("email", &tracing::field::display(&credentials.email));
+
+    let user_id = validate_credentials(credentials, &db_conn)
+        .await
+        .map_err(|e| e400("fail", "Invalid email or password", e))?;
+
+    
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({"status": "success", "message": "MESSAGE"})))
 }

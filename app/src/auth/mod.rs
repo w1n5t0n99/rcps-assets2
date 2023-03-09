@@ -1,7 +1,5 @@
-mod password;
-mod jwt;
-mod session_middleware;
-mod jwt_middleware;
-
-//pub use password::{change_password, validate_credentials, AuthError, Credentials};
+pub mod password;
+pub mod jwt;
+pub mod session_middleware;
+pub mod jwt_middleware;
 
