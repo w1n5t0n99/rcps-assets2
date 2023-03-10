@@ -12,6 +12,12 @@ pub async fn select_user_from_email(email: &str, db: &DbConn) -> Result<Option<u
         .await
 }
 
+pub async fn select_user_from_id(user_id: Uuid, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
+    User::find_by_id(user_id)
+        .one(db)
+        .await
+}
+
 pub async fn update_user_password(user_id: uuid::Uuid, password_hash: Secret<String>, db: &DbConn) -> Result<(), DbErr> {
     let user = User::find_by_id(user_id).one(db).await?;
     let mut user: user::ActiveModel = user.unwrap().into();

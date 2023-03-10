@@ -6,17 +6,9 @@ use sea_orm::DbConn;
 
 use crate::utils::spawn_blocking_with_tracing;
 use crate::db::user_db::*;
-
+use super::AuthError;
 
 const DEFAULT_PASSWORD_HASH: &'static str = "$argon2id$v=19$m=15000,t=2,p=1$gZiV/M1gPc22ElAH/Jh1Hw$CWOrkoo7oJBQ/iyh7uJ0LO2aLEfrHwTWllSAxT0zRno";
-
-#[derive(thiserror::Error, Debug)]
-pub enum AuthError {
-    #[error("Invalid credentials.")]
-    InvalidCredentials(#[source] anyhow::Error),
-    #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
-}
 
 pub struct Credentials {
     pub email: String,

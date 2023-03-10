@@ -5,9 +5,8 @@ use serde::Deserialize;
 
 use crate::db::user_db::*;
 use crate::auth::password::compute_password_hash;
-use crate::domain::response::FilteredUser;
+use crate::domain::response::filter_user_record;
 use crate::error_responses::*;
-use ::entity::user;
 
 
 #[derive(Debug, Deserialize)]
@@ -46,15 +45,4 @@ async fn register_user_handler(
     });
 
     Ok(HttpResponse::Ok().json(user_response))
-}
-
-fn filter_user_record(user: &user::Model) -> FilteredUser {
-    FilteredUser {
-        id: user.id.to_string(),
-        email: user.email.to_owned(),
-        name: user.name.to_owned(),
-        photo: user.photo.to_owned(),
-        created_at: user.created_at.to_owned(),
-        updated_at: user.updated_at.to_owned(),
-    }
 }

@@ -55,3 +55,18 @@ where
 
     actix_web::error::InternalError::from_response(e, response).into()
 }
+
+pub fn e404<T, S>(status: S, message: S, e: T) -> actix_web::Error
+where
+    T: std::fmt::Debug + std::fmt::Display + 'static,
+    S: Into<String>,
+{
+    let error_response = ErrorResponse {
+        status: status.into(),
+        message: message.into(),
+    };
+
+    let response = HttpResponse::build(StatusCode::NOT_FOUND).json(error_response);
+
+    actix_web::error::InternalError::from_response(e, response).into()
+}

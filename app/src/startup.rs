@@ -98,10 +98,12 @@ fn init(cfg: &mut web::ServiceConfig) {
     cfg.service(routes::health_check::health_checker);
     cfg.service(actix_files::Files::new("/static", "./app/static"));
 
-    cfg.service(
-        web::scope("/api")
-            .service(api::health_check::health_checker)
-            .service(api::auth::register::register_user_handler)
-        );   
+    let scope = web::scope("/api")
+        .service(api::health_check::health_checker)
+        .service(api::auth::register::register_user_handler)
+        .service(api::auth::login::login_user_handler)
+        .service(api::auth::logout::logout_handler)
+        .service(api::users::get_me_handler);
 
+    cfg.service(scope); 
 }
