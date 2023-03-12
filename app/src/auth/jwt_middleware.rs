@@ -1,77 +1,47 @@
-use core::fmt;
-use std::future::{ready, Ready};
-
-use actix_web::error::ErrorUnauthorized;
-use actix_web::{dev::Payload, Error as ActixWebError};
-use actix_web::{http, web, FromRequest, HttpMessage, HttpRequest};
+use actix_web::{http, web, HttpMessage};
+use actix_web::body::MessageBody;
+use actix_web::dev::{ServiceRequest, ServiceResponse};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use serde::Serialize;
+use actix_web_lab::middleware::Next;
 
 use crate::auth::jwt::TokenClaims;
+use crate::error_responses::{e500, e401};
+
+use super::JwtData;
 
 
-#[derive(Debug, Serialize)]
-struct ErrorResponse {
-    status: String,
-    message: String,
-}
+pub async fn reject_invalid_jwt(
+    req: ServiceRequest,
+    next: Next<impl MessageBody>,
+) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
 
-impl fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string(&self).unwrap())
-    }
-}
+    let decoding_key = req.app_data::<web::Data<DecodingKey>>()
+        .ok_or_else(|| e500("error", "Unexpected server error occured", "AuthError"))?;
 
-pub struct JwtMiddleware {
-    pub user_id: uuid::Uuid,
-}
-
-impl FromRequest for JwtMiddleware {
-    type Error = ActixWebError;
-    type Future = Ready<Result<Self, Self::Error>>;
-
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let decoding_key = req.app_data::<web::Data<DecodingKey>>().unwrap();
-
-        let token = req
-            .cookie("token")
-            .map(|c| c.value().to_string())
-            .or_else(|| {
-                req.headers()
-                    .get(http::header::AUTHORIZATION)
-                    .map(|h| h.to_str().unwrap().split_at(7).1.to_string())
-            });
-
-        if token.is_none() {
-            let json_error = ErrorResponse {
-                status: "fail".to_string(),
-                message: "You are not logged in, please provide token".to_string(),
-            };
-
-            return ready(Err(ErrorUnauthorized(json_error)));
-        }
-
-        let claims = match decode::<TokenClaims>(
-            &token.unwrap(),
+    let token = req
+        .cookie("token")
+        .map(|c| c.value().to_string())
+        .or_else(|| {
+            req.headers()
+                .get(http::header::AUTHORIZATION)
+                .map(|h| h.to_str().unwrap().split_at(7).1.to_string())
+        })
+        .ok_or_else(|| e401("fail", "You are not logged in, please provide token", "AuthError"))?;
+    
+    let claims = decode::<TokenClaims>(
+            &token,
             &decoding_key,
             &Validation::default(),
-        ) {
-            Ok(c) => c.claims,
-            Err(_) => {
-                let json_error = ErrorResponse {
-                    status: "fail".to_string(),
-                    message: "Invalid token".to_string(),
-                };
-                
-                return ready(Err(ErrorUnauthorized(json_error)));
-            }
-        };
+        )
+        .map_err(|e| e401("fail", "Invalid token", e))
+        .map(|t| t.claims)?;
 
-        // TODO: insert client struct instead of plain uuid
-        let user_id = uuid::Uuid::parse_str(claims.sub.as_str()).unwrap();
-        req.extensions_mut()
-            .insert::<uuid::Uuid>(user_id.to_owned());
+    // TODO: insert client struct instead of plain uuid
+    let user_id = uuid::Uuid::parse_str(claims.sub.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
+    let org_id = uuid::Uuid::parse_str(claims.org.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
 
-        ready(Ok(JwtMiddleware { user_id }))
-    }
+    let jwt_data = JwtData { user_id, org_id };
+    req.extensions_mut().insert::<JwtData>(jwt_data);
+
+    next.call(req).await
 }

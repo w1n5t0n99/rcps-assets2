@@ -18,8 +18,7 @@ use tracing_actix_web::TracingLogger;
 use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
-//use crate::auth::{reject_anonymous_users};
-use crate::routes;
+use crate::auth::jwt_middleware::reject_invalid_jwt;
 use crate::api;
 
 
@@ -73,11 +72,11 @@ async fn run(
     _base_url: String,
     hmac_secret: Secret<String>,
 ) -> Result<Server, anyhow::Error> {
-    let db_connection = web::Data::new(db_connection);
-    let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
-    let message_store = CookieMessageStore::builder(secret_key.clone()).build();
-    let message_framework = FlashMessagesFramework::builder(message_store).build();
+    //let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
+    //let message_store = CookieMessageStore::builder(secret_key.clone()).build();
+    //let message_framework = FlashMessagesFramework::builder(message_store).build();
 
+    let db_connection = web::Data::new(db_connection);
     let decoding_key = web::Data::new(DecodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
     let encoding_key = web::Data::new(EncodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
    
@@ -95,15 +94,24 @@ async fn run(
 }
 
 fn init(cfg: &mut web::ServiceConfig) {
-    cfg.service(routes::health_check::health_checker);
     cfg.service(actix_files::Files::new("/static", "./app/static"));
+
+    let account_scope = web::scope("/account")
+        .service(api::account::register::register_account_handler);
+
+    let session_scope = web::scope("/session")
+        .service(api::session::login::login_user_handler);
+
+    let users_scope = web::scope("/users")
+        .wrap(from_fn(reject_invalid_jwt))
+        .service(api::users::user_details::get_user_details_handler)
+        .service(api::users::user_create::create_user_handler);
 
     let scope = web::scope("/api")
         .service(api::health_check::health_checker)
-        .service(api::auth::register::register_user_handler)
-        .service(api::auth::login::login_user_handler)
-        .service(api::auth::logout::logout_handler)
-        .service(api::users::get_me_handler);
+        .service(account_scope)
+        .service(session_scope)
+        .service(users_scope);
 
     cfg.service(scope); 
 }

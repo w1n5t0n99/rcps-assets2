@@ -23,7 +23,7 @@ pub struct LoginUserModel {
     skip_all,
     fields(email=tracing::field::Empty, user_id=tracing::field::Empty)
 )]
-#[post("/auth/login")]
+#[post("/login")]
 async fn login_user_handler(
     body: web::Json<LoginUserModel>,
     db_conn: web::Data<DbConn>,
@@ -37,13 +37,13 @@ async fn login_user_handler(
 
     tracing::Span::current().record("email", &tracing::field::display(&credentials.email));
 
-    let user_id = validate_credentials(credentials, &db_conn)
+    let user = validate_credentials(credentials, &db_conn)
         .await
         .map_err(|e| e400("fail", "Invalid email or password", e))?;
 
-    tracing::Span::current().record("user_id", &tracing::field::display(&user_id));
+    tracing::Span::current().record("user_id", &tracing::field::display(&user.id));
 
-    let token = generate_jwt_from_user(user_id, Duration::minutes(120), &encoding_key)
+    let token = generate_jwt_from_user(user.id, user.organization_id, Duration::minutes(120), &encoding_key)
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 

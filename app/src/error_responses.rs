@@ -26,6 +26,7 @@ where
     actix_web::error::InternalError::from_response(e, response).into()
 }
 
+// CONFLICT
 pub fn e409<T, S>(status: S, message: S, e: T) -> actix_web::Error
 where
     T: std::fmt::Debug + std::fmt::Display + 'static,
@@ -41,6 +42,7 @@ where
     actix_web::error::InternalError::from_response(e, response).into()
 }
 
+// BAD_REQUEST
 pub fn e400<T, S>(status: S, message: S, e: T) -> actix_web::Error
 where
     T: std::fmt::Debug + std::fmt::Display + 'static,
@@ -56,6 +58,23 @@ where
     actix_web::error::InternalError::from_response(e, response).into()
 }
 
+// UNAUTHORIZED
+pub fn e401<T, S>(status: S, message: S, e: T) -> actix_web::Error
+where
+    T: std::fmt::Debug + std::fmt::Display + 'static,
+    S: Into<String>,
+{
+    let error_response = ErrorResponse {
+        status: status.into(),
+        message: message.into(),
+    };
+
+    let response = HttpResponse::build(StatusCode::UNAUTHORIZED).json(error_response);
+
+    actix_web::error::InternalError::from_response(e, response).into()
+}
+
+// NOT_FOUND
 pub fn e404<T, S>(status: S, message: S, e: T) -> actix_web::Error
 where
     T: std::fmt::Debug + std::fmt::Display + 'static,

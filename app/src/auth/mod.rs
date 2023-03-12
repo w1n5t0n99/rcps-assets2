@@ -1,6 +1,7 @@
+use serde::{Serialize, Deserialize};
+
 pub mod password;
 pub mod jwt;
-pub mod session_middleware;
 pub mod jwt_middleware;
 
 
@@ -10,4 +11,10 @@ pub enum AuthError {
     InvalidCredentials(#[source] anyhow::Error),
     #[error(transparent)]
     UnexpectedError(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JwtData {
+    pub user_id: uuid::Uuid,
+    pub org_id: uuid::Uuid,
 }

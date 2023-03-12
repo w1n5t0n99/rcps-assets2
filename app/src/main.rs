@@ -1,7 +1,6 @@
 mod configuration;
 mod telemetry;
 mod startup;
-mod routes;
 mod api;
 mod auth;
 mod filesystem;
