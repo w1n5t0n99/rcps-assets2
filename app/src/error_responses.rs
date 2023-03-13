@@ -74,6 +74,22 @@ where
     actix_web::error::InternalError::from_response(e, response).into()
 }
 
+// FORBIDDEN
+pub fn e403<T, S>(status: S, message: S, e: T) -> actix_web::Error
+where
+    T: std::fmt::Debug + std::fmt::Display + 'static,
+    S: Into<String>,
+{
+    let error_response = ErrorResponse {
+        status: status.into(),
+        message: message.into(),
+    };
+
+    let response = HttpResponse::build(StatusCode::FORBIDDEN).json(error_response);
+
+    actix_web::error::InternalError::from_response(e, response).into()
+}
+
 // NOT_FOUND
 pub fn e404<T, S>(status: S, message: S, e: T) -> actix_web::Error
 where

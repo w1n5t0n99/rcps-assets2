@@ -8,7 +8,7 @@ use crate::db::user_db::*;
 use crate::auth::password::compute_password_hash_nonblocking;
 use crate::domain::response::UserResponse;
 use crate::error_responses::*;
-use crate::utils::{DbErrbExt, spawn_blocking_with_tracing};
+use crate::utils::DbErrbExt;
 
 
 #[derive(Debug, Deserialize)]
@@ -45,6 +45,5 @@ async fn create_user_handler(
         })?;
 
 
-    // TODO: should return organization data not user data
     Ok(HttpResponse::Ok().json(UserResponse::new("success", user)))
 }

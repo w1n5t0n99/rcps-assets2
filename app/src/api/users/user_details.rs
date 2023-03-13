@@ -1,6 +1,5 @@
 use actix_web::{get, Responder, web, HttpResponse};
 use sea_orm::DbConn;
-use uuid::Uuid;
 
 use crate::auth::JwtData;
 use crate::db::user_db::*;

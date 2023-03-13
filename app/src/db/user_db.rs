@@ -60,3 +60,14 @@ pub async fn insert_owner<C: ConnectionTrait>(name: String, email: String, passw
 
     user.insert(db).await
 }
+
+pub async fn update_user<C: ConnectionTrait>(user: user::Model, name: Option<String>, db: &C) -> Result<user::Model, DbErr> {
+    let mut user: user::ActiveModel = user.into();
+
+    if let Some(name) = name {
+        user.name = Set(name);
+    }
+
+    let user = user.update(db).await;
+    user
+}

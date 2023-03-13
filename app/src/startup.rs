@@ -104,6 +104,7 @@ fn init(cfg: &mut web::ServiceConfig) {
 
     let users_scope = web::scope("/users")
         .wrap(from_fn(reject_invalid_jwt))
+        .service(api::users::user_update::update_user_handler)
         .service(api::users::user_details::get_user_details_handler)
         .service(api::users::user_create::create_user_handler);
 
