@@ -31,7 +31,12 @@ async fn update_user_handler(
         return Err(e403("error", "You do not have access to update this user", "UserError"));
     }
 
-    let user = user_db::update_user(user, body.user.name.clone(), db_conn)
+    // prevent the org from having no admins
+    if jwt_data.user_id == user.id && body.user.role.is_some() {
+        return Err(e403("error", "User cannot change own role", "UserError"));
+    }
+
+    let user = user_db::update_user(user, body.user.clone(), db_conn)
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;    
 

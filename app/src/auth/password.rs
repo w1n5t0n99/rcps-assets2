@@ -65,12 +65,10 @@ pub async fn validate_credentials(
     credentials: Credentials,
     db_conn: &DbConn,
 ) -> Result<user::Model, AuthError> {
-    let mut user_id = None;
     let mut expected_password_hash = Secret::new(DEFAULT_PASSWORD_HASH.to_string());
 
     let user = get_stored_credentials(&credentials.email, db_conn).await?;
     if let Some(ref user) = user {
-        user_id = Some(user.id);
         expected_password_hash = user.password_hash.clone().into();
     }
 

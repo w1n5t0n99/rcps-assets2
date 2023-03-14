@@ -1,27 +1,18 @@
 use actix_web::{post, Responder, web, HttpResponse};
 use sea_orm::DbConn;
-use secrecy::Secret;
-use serde::Deserialize;
 
 use crate::db::user_db;
 use crate::db::registration_db;
 use crate::auth::password::compute_password_hash_nonblocking;
 use crate::domain::response::RegistrationResponse;
+use crate::domain::body::{RegistrationModel, RegistrationSecureModel};
 use crate::error_responses::*;
 
-
-#[derive(Debug, Deserialize)]
-struct RegisterUserModel {
-    pub name: String,
-    pub email: String,
-    pub password: Secret<String>,
-    pub organization: String,
-}
 
 #[tracing::instrument(name = "register", skip_all, fields(email=tracing::field::Empty))]
 #[post("/register")]
 async fn register_account_handler(
-    body: web::Json<RegisterUserModel>,
+    body: web::Json<RegistrationModel>,
     db_conn: web::Data<DbConn>,
 ) -> Result<impl Responder, actix_web::Error> {
     tracing::Span::current().record("email", &tracing::field::display(&body.email));
@@ -39,8 +30,8 @@ async fn register_account_handler(
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 
-
-    let (org, user) = registration_db::insert_registration_data(body.name.clone(), body.email.clone(), password_hash, body.organization.clone(), &db_conn)
+    let model = RegistrationSecureModel::from_registration_model(body.clone(), password_hash);
+    let (org, user) = registration_db::insert_registration_data(model, &db_conn)
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 

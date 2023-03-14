@@ -5,7 +5,7 @@ use crate::auth::JwtData;
 use crate::db::user_db::*;
 use crate::auth::password::compute_password_hash_nonblocking;
 use crate::domain::response::UserResponse;
-use crate::domain::body::CreateUserBody;
+use crate::domain::body::{CreateUserBody, CreateSecureUserModel};
 use crate::error_responses::*;
 use crate::utils::DbErrbExt;
 
@@ -24,8 +24,9 @@ async fn create_user_handler(
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 
+    let model = CreateSecureUserModel::from_user_model(body.user.clone(), password_hash);
         
-    let user = insert_user(body.user.name.clone(), body.user.email.clone(), password_hash, jwt_data.org_id, db_conn)
+    let user = insert_user(model, jwt_data.org_id, db_conn)
         .await
         .map_err(|e| {
             if e.is_unique_key_constraint() {

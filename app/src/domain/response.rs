@@ -4,6 +4,7 @@ use std::convert::From;
 
 use entity::user;
 use entity::organization;
+use super::RoleModel;
 
 #[derive(Debug, Serialize)]
 pub struct FilteredUser {
@@ -13,6 +14,7 @@ pub struct FilteredUser {
     pub photo: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
+    pub role: RoleModel,
 }
 
 impl From<user::Model> for FilteredUser {
@@ -24,6 +26,7 @@ impl From<user::Model> for FilteredUser {
             photo: user.photo,
             created_at: user.created_at,
             updated_at: user.updated_at,
+            role: user.role.into(),
         }
     }
 }
