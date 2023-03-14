@@ -1,39 +1,31 @@
 use actix_web::{post, Responder, web, HttpResponse};
 use sea_orm::DbConn;
-use secrecy::Secret;
-use serde::Deserialize;
 
 use crate::auth::JwtData;
 use crate::db::user_db::*;
 use crate::auth::password::compute_password_hash_nonblocking;
 use crate::domain::response::UserResponse;
+use crate::domain::body::CreateUserBody;
 use crate::error_responses::*;
 use crate::utils::DbErrbExt;
 
-
-#[derive(Debug, Deserialize)]
-struct CreateUserModel {
-    pub name: String,
-    pub email: String,
-    pub password: Secret<String>,
-}
 
 #[tracing::instrument(name = "create user", skip_all, fields(email=tracing::field::Empty))]
 #[post("")]
 async fn create_user_handler(
     jwt_data: web::ReqData<JwtData>,
-    body: web::Json<CreateUserModel>,
+    body: web::Json<CreateUserBody>,
     db_conn: web::Data<DbConn>,
 ) -> Result<impl Responder, actix_web::Error> {
-    tracing::Span::current().record("email", &tracing::field::display(&body.email));
+    tracing::Span::current().record("email", &tracing::field::display(&body.user.email));
     let db_conn: &DbConn = &*db_conn;
 
-    let password_hash = compute_password_hash_nonblocking(body.password.clone())
+    let password_hash = compute_password_hash_nonblocking(body.user.password.clone())
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 
         
-    let user = insert_user(body.name.clone(), body.email.clone(), password_hash, jwt_data.org_id, db_conn)
+    let user = insert_user(body.user.name.clone(), body.user.email.clone(), password_hash, jwt_data.org_id, db_conn)
         .await
         .map_err(|e| {
             if e.is_unique_key_constraint() {

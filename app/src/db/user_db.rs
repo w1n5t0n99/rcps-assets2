@@ -18,6 +18,13 @@ pub async fn select_user_from_id<C: ConnectionTrait>(user_id: Uuid, db: &C) -> R
         .await
 }
 
+pub async fn select_users<C: ConnectionTrait>(org_id: Uuid, db: &C) -> Result<Vec<user::Model>, DbErr> {
+    User::find()
+        .filter(user::Column::OrganizationId.eq(org_id))
+        .all(db)
+        .await
+}
+
 pub async fn update_user_password<C: ConnectionTrait>(user_id: uuid::Uuid, password_hash: Secret<String>, db: &C) -> Result<(), DbErr> {
     let user = User::find_by_id(user_id).one(db).await?;
     let mut user: user::ActiveModel = user.unwrap().into();

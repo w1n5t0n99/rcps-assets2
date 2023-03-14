@@ -1,4 +1,28 @@
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{prelude::*, sea_orm::{DeriveActiveEnum, EnumIter}, sea_query::extension::postgres::TypeCreateStatement};
+use sea_orm_migration::sea_orm::ColumnTypeTrait;
+
+enum Role {
+    Type,
+    Admin,
+    Manager,
+    Member,
+}
+
+impl Iden for Role {
+    fn unquoted(&self, s: &mut dyn Write) {
+        write!(
+            s,
+            "{}",
+            match self {
+                Self::Type => "role",
+                Self::Admin => "admin",
+                Self::Manager => "manager",
+                Self::Member => "member",
+            }
+        )
+        .unwrap();
+    }
+}
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -6,6 +30,14 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+
+        manager.create_type(
+            TypeCreateStatement::new()
+                .as_enum(Role::Type)
+                .values([Role::Admin, Role::Manager, Role::Member])
+                .to_owned()
+        )
+        .await?;
         
         manager
             .create_table(
@@ -26,6 +58,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(User::UpdatedAt).timestamp_with_time_zone().not_null())
                     .col(ColumnDef::new(User::IsOwner).boolean().not_null().default(false))
                     .col(ColumnDef::new(User::OrganizationId).uuid().not_null())
+                    .col(ColumnDef::new(User::Role).enumeration(Role::Type, [Role::Admin, Role::Manager, Role::Member]).not_null())
                     .foreign_key(
                         ForeignKey::create()
                             .name("FK_user_organization")
@@ -59,6 +92,7 @@ enum User {
     UpdatedAt,
     IsOwner,
     OrganizationId,
+    Role,
 }
 
 #[derive(Iden)]

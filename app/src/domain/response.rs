@@ -43,6 +43,21 @@ impl UserResponse {
     }
 }
 
+#[derive(Serialize, Debug)]
+pub struct UsersResponse {
+    pub status: String,
+    pub users: Vec<FilteredUser>,
+}
+
+impl UsersResponse {
+    pub fn new<S: Into<String>, U: Into<FilteredUser>>(status: S, users: Vec<U>) -> Self {
+        Self {
+            status: status.into(),
+            users: users.into_iter().map(|u| u.into()).collect(),
+        }
+    }
+}
+
 // May add data later that needs to be filtered out
 #[derive(Debug, Serialize)]
 pub struct FilteredOrganization {

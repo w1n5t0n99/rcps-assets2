@@ -1,25 +1,20 @@
 use actix_web::{put, Responder, web, HttpResponse};
 use sea_orm::DbConn;
-use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::auth::JwtData;
 use crate::db::user_db;
 use crate::domain::response::UserResponse;
+use crate::domain::body::UpdateUserBody;
 use crate::error_responses::*;
 
-
-#[derive(Debug, Deserialize)]
-struct UpdateUserModel {
-    pub name: Option<String>,
-}
 
 #[tracing::instrument(name = "update user", skip_all, fields(user_id=tracing::field::Empty))]
 #[put("/{id}")]
 async fn update_user_handler(
     jwt_data: web::ReqData<JwtData>,
     path: web::Path<Uuid>,
-    body: web::Json<UpdateUserModel>,
+    body: web::Json<UpdateUserBody>,
     db_conn: web::Data<DbConn>,
 ) -> Result<impl Responder, actix_web::Error> {
     let db_conn: &DbConn = &*db_conn;
@@ -36,7 +31,7 @@ async fn update_user_handler(
         return Err(e403("error", "You do not have access to update this user", "UserError"));
     }
 
-    let user = user_db::update_user(user, body.name.clone(), db_conn)
+    let user = user_db::update_user(user, body.user.name.clone(), db_conn)
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;    
 
