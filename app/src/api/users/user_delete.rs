@@ -1,6 +1,7 @@
 use actix_web::{delete, Responder, web, HttpResponse};
 use oso::Oso;
 use sea_orm::DbConn;
+use serde_json::json;
 use uuid::Uuid;
 
 use crate::auth::JwtData;
@@ -32,9 +33,14 @@ async fn delete_user_handler(
         return Err(e403("fail", "User does not have permission", "Forbidden"));
     }
 
-    user_db::delete_user(user, db_conn)
+    let delete_res = user_db::delete_user(user, db_conn)
         .await
-        .map_err(|e| e500("error", "Unexpected server error occured", e))?;    
+        .map_err(|e| e500("error", "Unexpected server error occured", e))?;   
 
-    Ok(HttpResponse::Ok().finish())
+    if delete_res.rows_affected > 0 {
+        Ok(HttpResponse::Ok().json(json!({"status": "success", "rows_affected": delete_res.rows_affected})))
+    }
+    else {
+        Ok(HttpResponse::NoContent().json(json!({"status": "success", "rows_affected": 0})))
+    }
 }
