@@ -39,8 +39,9 @@ pub async fn reject_invalid_jwt(
     // TODO: insert client struct instead of plain uuid
     let user_id = uuid::Uuid::parse_str(claims.sub.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
     let org_id = uuid::Uuid::parse_str(claims.org.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
+    let role = claims.rol;
 
-    let jwt_data = JwtData { user_id, org_id };
+    let jwt_data = JwtData { user_id, org_id, role };
     req.extensions_mut().insert::<JwtData>(jwt_data);
 
     next.call(req).await

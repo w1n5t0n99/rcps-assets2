@@ -43,7 +43,7 @@ async fn login_user_handler(
 
     tracing::Span::current().record("user_id", &tracing::field::display(&user.id));
 
-    let token = generate_jwt_from_user(user.id, user.organization_id, Duration::minutes(120), &encoding_key)
+    let token = generate_jwt_from_user(user.id, user.organization_id, user.role.into(), Duration::minutes(120), &encoding_key)
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 

@@ -25,6 +25,10 @@ async fn create_user_handler(
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 
     let model = CreateSecureUserModel::from_user_model(body.user.clone(), password_hash);
+
+    if jwt_data.role.ne("admin") {
+        return Err(e403("fail", "User does not have permission", "Forbidden"));
+    }
         
     let user = insert_user(model, jwt_data.org_id, db_conn)
         .await

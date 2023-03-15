@@ -20,8 +20,8 @@ use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::auth::jwt_middleware::reject_invalid_jwt;
+use crate::auth::JwtData;
 use crate::api;
-use ::entity::sea_orm_active_enums::Role;
 use ::entity::{sea_orm_active_enums, user};
 
 
@@ -86,7 +86,7 @@ async fn run(
     // Set up authorization
     let mut oso = Oso::new();
     oso.register_class(user::Model::get_polar_class_builder().name("User").build())?;
-    oso.register_class(sea_orm_active_enums::Role::get_polar_class_builder().name("Role").build())?;
+    oso.register_class(JwtData::get_polar_class_builder().name("JwtData").build())?;
     oso.load_files(vec!["./app/polar/users_authorization.polar"])?;
 
     let oso = web::Data::new(oso);
@@ -119,6 +119,7 @@ fn init(cfg: &mut web::ServiceConfig) {
         .service(api::users::user_update::update_user_handler)
         .service(api::users::user_details::get_user_details_handler)
         .service(api::users::users_get::gets_users_handler)
+        .service(api::users::user_delete::delete_user_handler)
         .service(api::users::user_create::create_user_handler);
 
     let scope = web::scope("/api")

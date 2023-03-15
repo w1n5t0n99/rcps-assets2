@@ -108,3 +108,9 @@ pub async fn update_user<C: ConnectionTrait>(user: user::Model, model: UpdateUse
     let user = user.update(db).await;
     user
 }
+
+pub async fn delete_user<C: ConnectionTrait>(user: user::Model, db: &C) -> Result<(), DbErr> {
+    let res = user.delete(db).await?;
+
+    Ok(())
+}

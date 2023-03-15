@@ -1,3 +1,4 @@
+use oso::PolarClass;
 use serde::{Serialize, Deserialize};
 
 pub mod password;
@@ -13,8 +14,12 @@ pub enum AuthError {
     UnexpectedError(#[from] anyhow::Error),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PolarClass)]
 pub struct JwtData {
+    #[polar(attribute)]
     pub user_id: uuid::Uuid,
+    #[polar(attribute)]
     pub org_id: uuid::Uuid,
+    #[polar(attribute)]
+    pub role: String,
 }

@@ -8,6 +8,7 @@ use chrono::{Duration, Utc};
 use crate::utils::spawn_blocking_with_tracing;
 use super::AuthError;
 
+
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserModel {
     pub name: String,
@@ -19,17 +20,19 @@ pub struct RegisterUserModel {
 pub struct TokenClaims {
     pub sub: String,
     pub org: String,
+    pub rol: String,
     pub iat: usize,
     pub exp: usize,
 }
 
-pub async fn generate_jwt_from_user(user_id: Uuid, org_id: Uuid, duration: Duration, encoding_key: &EncodingKey) -> Result<String, AuthError> {
+pub async fn generate_jwt_from_user(user_id: Uuid, org_id: Uuid, role: String, duration: Duration, encoding_key: &EncodingKey) -> Result<String, AuthError> {
     let now = Utc::now();
     let iat = now.timestamp() as usize;
     let exp = (now + duration).timestamp() as usize;
     let claims: TokenClaims = TokenClaims {
         sub: user_id.to_string(),
         org: org_id.to_string(),
+        rol: role,
         exp,
         iat,
     };
