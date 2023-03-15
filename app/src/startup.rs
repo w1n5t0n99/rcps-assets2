@@ -11,6 +11,7 @@ use actix_web_lab::middleware::from_fn;
 use actix_files;
 use actix_web::cookie::{Key, time::Duration};
 use jsonwebtoken::{DecodingKey, EncodingKey};
+use oso::{Oso, PolarClass};
 use reqwest::StatusCode;
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
 use secrecy::{Secret, ExposeSecret};
@@ -20,6 +21,8 @@ use std::net::TcpListener;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::auth::jwt_middleware::reject_invalid_jwt;
 use crate::api;
+use ::entity::sea_orm_active_enums::Role;
+use ::entity::{sea_orm_active_enums, user};
 
 
 pub struct Application {
@@ -79,6 +82,14 @@ async fn run(
     let db_connection = web::Data::new(db_connection);
     let decoding_key = web::Data::new(DecodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
     let encoding_key = web::Data::new(EncodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
+
+    // Set up authorization
+    let mut oso = Oso::new();
+    oso.register_class(user::Model::get_polar_class_builder().name("User").build())?;
+    oso.register_class(sea_orm_active_enums::Role::get_polar_class_builder().name("Role").build())?;
+    oso.load_files(vec!["./app/polar/users_authorization.polar"])?;
+
+    let oso = web::Data::new(oso);
    
     let server = HttpServer::new(move || {
         App::new()
@@ -86,6 +97,7 @@ async fn run(
             .app_data(db_connection.clone())
             .app_data(encoding_key.clone())
             .app_data(decoding_key.clone())
+            .app_data(oso.clone())
             .configure(init)
     })
     .listen(listener)?
