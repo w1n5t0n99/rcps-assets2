@@ -1,4 +1,7 @@
+use std::os;
+
 use actix_web::{put, Responder, web, HttpResponse};
+use oso::Oso;
 use sea_orm::DbConn;
 use uuid::Uuid;
 
@@ -15,6 +18,7 @@ async fn update_user_handler(
     jwt_data: web::ReqData<JwtData>,
     path: web::Path<Uuid>,
     body: web::Json<UpdateUserBody>,
+    oso: web::Data<Oso>,
     db_conn: web::Data<DbConn>,
 ) -> Result<impl Responder, actix_web::Error> {
     let db_conn: &DbConn = &*db_conn;
@@ -30,6 +34,8 @@ async fn update_user_handler(
     if jwt_data.org_id != user.organization_id {
         return Err(e403("error", "You do not have access to update this user", "UserError"));
     }
+
+    //if oso.is_allowed(actor, action, resource)
 
     // prevent the org from having no admins
     if jwt_data.user_id == user.id && body.user.role.is_some() {
