@@ -6,8 +6,7 @@ use actix_web_lab::middleware::Next;
 
 use crate::auth::jwt::TokenClaims;
 use crate::error_responses::{e500, e401};
-
-use super::JwtData;
+use super::ApiClient;
 
 
 pub async fn reject_invalid_jwt(
@@ -41,8 +40,8 @@ pub async fn reject_invalid_jwt(
     let org_id = uuid::Uuid::parse_str(claims.org.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
     let role = claims.rol;
 
-    let jwt_data = JwtData { user_id, org_id, role };
-    req.extensions_mut().insert::<JwtData>(jwt_data);
+    let jwt_data = ApiClient { user_id, org_id, role };
+    req.extensions_mut().insert::<ApiClient>(jwt_data);
 
     next.call(req).await
 }

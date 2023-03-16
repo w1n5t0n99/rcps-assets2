@@ -7,7 +7,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::error_responses::*;
-use crate::auth::password::{Credentials, validate_credentials};
+use crate::auth::password::{Credentials, validate_credentials, PasswordError};
 use crate::auth::jwt::{generate_jwt_from_user, generate_jwt_cookie};
 
 
@@ -39,7 +39,12 @@ async fn login_user_handler(
 
     let user = validate_credentials(credentials, &db_conn)
         .await
-        .map_err(|e| e400("fail", "Invalid email or password", e))?;
+        .map_err(|e|
+             match e {
+                PasswordError::InvalidCredentials(_) => e400("fail", "Invalid email or password", e),
+                _ => e500("error", "Unexpected server error occured", e),
+             }
+        )?;
 
     tracing::Span::current().record("user_id", &tracing::field::display(&user.id));
 
@@ -49,7 +54,6 @@ async fn login_user_handler(
 
     let token_cookie = generate_jwt_cookie(token.clone(), Duration::minutes(120));
 
-    // TODO: split login via cookie and session token creation into seperate api routes
     Ok(HttpResponse::Ok()
         .cookie(token_cookie)
         .json(json!({"status": "success", "token": token})))

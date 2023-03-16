@@ -6,8 +6,15 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use chrono::{Duration, Utc};
 
 use crate::utils::spawn_blocking_with_tracing;
-use super::AuthError;
 
+
+#[derive(thiserror::Error, Debug)]
+pub enum TokenError {
+    #[error("Encoding credentials error.")]
+    Encoding(#[source]  anyhow::Error),
+    #[error(transparent)]
+    Unexpected(#[from] anyhow::Error),
+}
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserModel {
@@ -25,7 +32,7 @@ pub struct TokenClaims {
     pub exp: usize,
 }
 
-pub async fn generate_jwt_from_user(user_id: Uuid, org_id: Uuid, role: String, duration: Duration, encoding_key: &EncodingKey) -> Result<String, AuthError> {
+pub async fn generate_jwt_from_user(user_id: Uuid, org_id: Uuid, role: String, duration: Duration, encoding_key: &EncodingKey) -> Result<String, TokenError> {
     let now = Utc::now();
     let iat = now.timestamp() as usize;
     let exp = (now + duration).timestamp() as usize;
@@ -40,8 +47,9 @@ pub async fn generate_jwt_from_user(user_id: Uuid, org_id: Uuid, role: String, d
     let encoding_key = encoding_key.clone();
     let token = spawn_blocking_with_tracing(move || encode(&Header::default(), &claims, &encoding_key))
         .await
-        .context("Spawn blocking failed")?
-        .context("Failed to encode JWT")?;
+        .context("Spawn blocking failed")?;
+
+    let token = token.context("Failed to encode JWT").map_err(TokenError::Encoding)?;
 
     Ok(token)
 }

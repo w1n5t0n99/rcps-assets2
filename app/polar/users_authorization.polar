@@ -1,21 +1,20 @@
 
-allow(user: JwtData, "create", resource: User) if
+allow(user: Client, "create", resource: User) if
   has_permission(user, "create", resource);
 
-allow(user: JwtData, "view", resource: User) if
+allow(user: Client, "view", resource: User) if
   has_permission(user, "view", resource);
 
-allow(user: JwtData, "update", resource: User) if
+allow(user: Client, "update", resource: User) if
   has_permission(user, "update", resource);
 
-allow(user: JwtData, "delete", resource: User) if
+allow(user: Client, "delete", resource: User) if
      has_permission(user, "delete", resource) and
      not user.user_id == resource.id;
 
-allow(user: JwtData, "update_role", resource: User) if
+allow(user: Client, "update_role", resource: User) if
      has_permission(user, "update_role", resource) and
      not user.user_id == resource.id;
-
  
 resource User {
     permissions = [
@@ -43,9 +42,9 @@ resource User {
     "view" if "admin";
 }
 
-actor JwtData {}
+actor Client {}
 
-has_role(user: JwtData, role: String, resource: User) if
+has_role(user: Client, role: String, resource: User) if
   user.role == role and
   user.org_id == resource.organization_id;
 

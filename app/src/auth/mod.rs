@@ -4,18 +4,11 @@ use serde::{Serialize, Deserialize};
 pub mod password;
 pub mod jwt;
 pub mod jwt_middleware;
+pub mod authorize;
 
-
-#[derive(thiserror::Error, Debug)]
-pub enum AuthError {
-    #[error("Invalid credentials.")]
-    InvalidCredentials(#[source] anyhow::Error),
-    #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PolarClass)]
-pub struct JwtData {
+pub struct ApiClient {
     #[polar(attribute)]
     pub user_id: uuid::Uuid,
     #[polar(attribute)]

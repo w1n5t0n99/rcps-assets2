@@ -1,18 +1,9 @@
 use actix_web::dev::Server;
-use actix_web::middleware::ErrorHandlers;
 use actix_web::{web, App, HttpServer};
-use actix_session::storage::CookieSessionStore;
-use actix_session::SessionMiddleware;
-use actix_session::config::PersistentSession;
-use actix_web_flash_messages::storage::CookieMessageStore;
-use actix_web_flash_messages::FlashMessagesFramework;
-use actix_web_grants::GrantsMiddleware;
 use actix_web_lab::middleware::from_fn;
 use actix_files;
-use actix_web::cookie::{Key, time::Duration};
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use oso::{Oso, PolarClass};
-use reqwest::StatusCode;
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
 use secrecy::{Secret, ExposeSecret};
 use tracing_actix_web::TracingLogger;
@@ -20,9 +11,10 @@ use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::auth::jwt_middleware::reject_invalid_jwt;
-use crate::auth::JwtData;
+use crate::auth::authorize::Authorize;
+use crate::auth::ApiClient;
 use crate::api;
-use ::entity::{sea_orm_active_enums, user};
+use ::entity::user;
 
 
 pub struct Application {
@@ -86,10 +78,10 @@ async fn run(
     // Set up authorization
     let mut oso = Oso::new();
     oso.register_class(user::Model::get_polar_class_builder().name("User").build())?;
-    oso.register_class(JwtData::get_polar_class_builder().name("JwtData").build())?;
+    oso.register_class(ApiClient::get_polar_class_builder().name("Client").build())?;
     oso.load_files(vec!["./app/polar/users_authorization.polar"])?;
 
-    let oso = web::Data::new(oso);
+    let authorize = web::Data::new(Authorize::new(oso));
    
     let server = HttpServer::new(move || {
         App::new()
@@ -97,7 +89,7 @@ async fn run(
             .app_data(db_connection.clone())
             .app_data(encoding_key.clone())
             .app_data(decoding_key.clone())
-            .app_data(oso.clone())
+            .app_data(authorize.clone())
             .configure(init)
     })
     .listen(listener)?

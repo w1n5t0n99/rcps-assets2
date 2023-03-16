@@ -6,18 +6,27 @@ use sea_orm::DbConn;
 
 use crate::utils::spawn_blocking_with_tracing;
 use crate::db::user_db::*;
-use super::AuthError;
 use ::entity::user;
 
 
 const DEFAULT_PASSWORD_HASH: &'static str = "$argon2id$v=19$m=15000,t=2,p=1$gZiV/M1gPc22ElAH/Jh1Hw$CWOrkoo7oJBQ/iyh7uJ0LO2aLEfrHwTWllSAxT0zRno";
+
+#[derive(thiserror::Error, Debug)]
+pub enum PasswordError {
+    #[error("Invalid credentials.")]
+    InvalidCredentials(#[source]  anyhow::Error),
+    #[error("Could not update password hash in database.")]
+    UpdateDatabase(#[source] anyhow::Error),
+    #[error(transparent)]
+    Unexpected(#[from] anyhow::Error),
+}
 
 pub struct Credentials {
     pub email: String,
     pub password: Secret<String>,
 }
 
-fn compute_password_hash(password: Secret<String>) -> Result<Secret<String>, anyhow::Error> {
+fn compute_password_hash(password: Secret<String>) -> Result<Secret<String>, argon2::password_hash::errors::Error> {
     let salt = SaltString::generate(&mut rand::thread_rng());
     let password_hash = Argon2::new(
         Algorithm::Argon2id,
@@ -47,7 +56,7 @@ async fn get_stored_credentials(
 fn verify_password_hash(
     expected_password_hash: Secret<String>,
     password_candidate: Secret<String>,
-) -> Result<(), AuthError> {
+) -> Result<(), PasswordError> {
     let expected_password_hash = PasswordHash::new(expected_password_hash.expose_secret())
         .context("Failed to parse hash in PHC string format.")?;
 
@@ -57,14 +66,14 @@ fn verify_password_hash(
             &expected_password_hash,
         )
         .context("Invalid password.")
-        .map_err(AuthError::InvalidCredentials)
+        .map_err(PasswordError::InvalidCredentials)
 }
 
 #[tracing::instrument(name = "Validate credentials", skip_all)]
 pub async fn validate_credentials(
     credentials: Credentials,
     db_conn: &DbConn,
-) -> Result<user::Model, AuthError> {
+) -> Result<user::Model, PasswordError> {
     let mut expected_password_hash = Secret::new(DEFAULT_PASSWORD_HASH.to_string());
 
     let user = get_stored_credentials(&credentials.email, db_conn).await?;
@@ -78,7 +87,7 @@ pub async fn validate_credentials(
 
     user
         .context("Unknown username")
-        .map_err(AuthError::InvalidCredentials)
+        .map_err(PasswordError::InvalidCredentials)
 }
 
 #[tracing::instrument(name = "Change password", skip(password, db_conn))]
@@ -86,21 +95,24 @@ pub async fn change_password(
     user_id: uuid::Uuid,
     password: Secret<String>,
     db_conn: &DbConn,
-) -> Result<(), anyhow::Error> {
+) -> Result<(), PasswordError> {
     let password_hash = spawn_blocking_with_tracing(move || compute_password_hash(password))
-        .await?
+        .await
+        .context("Failed to spawn blocking task.")?
         .context("Failed to hash password")?;
     
     update_user_password(user_id, password_hash, db_conn)
         .await
-        .context("Failed to change user's password in the database.")?;
+        .context("Failed to change user's password in the database.")
+        .map_err(PasswordError::UpdateDatabase)?;
     
     Ok(())
 }
 
-pub async fn compute_password_hash_nonblocking(password: Secret<String>) -> Result<Secret<String>, anyhow::Error> {
+pub async fn compute_password_hash_nonblocking(password: Secret<String>) -> Result<Secret<String>, PasswordError> {
     let password_hash = spawn_blocking_with_tracing(move || compute_password_hash(password))
-        .await?
+        .await
+        .context("Failed to spawn blocking task.")?
         .context("Failed to hash password")?;
 
     Ok(password_hash)
