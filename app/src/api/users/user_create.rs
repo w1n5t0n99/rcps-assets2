@@ -34,7 +34,7 @@ async fn create_user_handler(
         .await
         .map_err(|e| {
             if e.is_unique_key_constraint() {
-                e409("fail", "User with that email already exists", "AuthError")
+                e409("fail", "User already exists", "AuthError")
             }
             else {
                 e500("error", "Unexpected server error occured", e)

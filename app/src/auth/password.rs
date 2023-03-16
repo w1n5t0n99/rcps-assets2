@@ -21,11 +21,6 @@ pub enum PasswordError {
     Unexpected(#[from] anyhow::Error),
 }
 
-pub struct Credentials {
-    pub email: String,
-    pub password: Secret<String>,
-}
-
 fn compute_password_hash(password: Secret<String>) -> Result<Secret<String>, argon2::password_hash::errors::Error> {
     let salt = SaltString::generate(&mut rand::thread_rng());
     let password_hash = Argon2::new(
@@ -70,18 +65,19 @@ fn verify_password_hash(
 }
 
 #[tracing::instrument(name = "Validate credentials", skip_all)]
-pub async fn validate_credentials(
-    credentials: Credentials,
+pub async fn select_user_with_valid_credentials<S: AsRef<str>>(
+    user_email: S,
+    user_password: Secret<String>,
     db_conn: &DbConn,
 ) -> Result<user::Model, PasswordError> {
     let mut expected_password_hash = Secret::new(DEFAULT_PASSWORD_HASH.to_string());
 
-    let user = get_stored_credentials(&credentials.email, db_conn).await?;
+    let user = get_stored_credentials(user_email.as_ref(), db_conn).await?;
     if let Some(ref user) = user {
         expected_password_hash = user.password_hash.clone().into();
     }
 
-    spawn_blocking_with_tracing(move || { verify_password_hash(expected_password_hash, credentials.password) })
+    spawn_blocking_with_tracing(move || { verify_password_hash(expected_password_hash, user_password) })
         .await
         .context("Failed to spawn blocking task.")??;
 

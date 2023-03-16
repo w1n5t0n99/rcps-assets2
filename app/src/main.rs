@@ -4,7 +4,6 @@ mod startup;
 mod api;
 mod auth;
 mod filesystem;
-mod session_state;
 mod utils;
 mod db;
 mod error_responses;

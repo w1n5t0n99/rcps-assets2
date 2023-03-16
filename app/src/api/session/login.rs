@@ -7,12 +7,12 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::error_responses::*;
-use crate::auth::password::{Credentials, validate_credentials, PasswordError};
+use crate::auth::password::{select_user_with_valid_credentials, PasswordError};
 use crate::auth::jwt::{generate_jwt_from_user, generate_jwt_cookie};
 
 
 #[derive(Debug, Deserialize)]
-pub struct LoginUserModel {
+pub struct CredentialsModel {
     pub email: String,
     pub password: Secret<String>,
 }
@@ -25,19 +25,14 @@ pub struct LoginUserModel {
 )]
 #[post("/login")]
 async fn login_user_handler(
-    body: web::Json<LoginUserModel>,
+    body: web::Json<CredentialsModel>,
     db_conn: web::Data<DbConn>,
     encoding_key: web::Data<EncodingKey>,
 ) -> Result<impl Responder, actix_web::Error> {
 
-    let credentials = Credentials {
-        email: body.email.clone(),
-        password: body.password.clone(),
-    };
+    tracing::Span::current().record("email", &tracing::field::display(&body.email));
 
-    tracing::Span::current().record("email", &tracing::field::display(&credentials.email));
-
-    let user = validate_credentials(credentials, &db_conn)
+    let user = select_user_with_valid_credentials(body.email.as_str(), body.password.clone(), &db_conn)
         .await
         .map_err(|e|
              match e {
