@@ -14,6 +14,7 @@ use crate::auth::jwt_middleware::reject_invalid_jwt;
 use crate::auth::authorize::Authorize;
 use crate::auth::ApiClient;
 use crate::api;
+use crate::error_responses::e400;
 use ::entity::user;
 
 
@@ -67,10 +68,6 @@ async fn run(
     _base_url: String,
     hmac_secret: Secret<String>,
 ) -> Result<Server, anyhow::Error> {
-    //let secret_key = Key::from(hmac_secret.expose_secret().as_bytes());
-    //let message_store = CookieMessageStore::builder(secret_key.clone()).build();
-    //let message_framework = FlashMessagesFramework::builder(message_store).build();
-
     let db_connection = web::Data::new(db_connection);
     let decoding_key = web::Data::new(DecodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
     let encoding_key = web::Data::new(EncodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
@@ -82,6 +79,10 @@ async fn run(
     oso.load_files(vec!["./app/polar/users_authorization.polar"])?;
 
     let authorize = web::Data::new(Authorize::new(oso));
+
+    let jsonconfig = web::JsonConfig::default().error_handler(|_err, _req| {
+        e400("error", "Invalid client-side data (JSON)", "ValidationError")
+    });
    
     let server = HttpServer::new(move || {
         App::new()
@@ -90,6 +91,7 @@ async fn run(
             .app_data(encoding_key.clone())
             .app_data(decoding_key.clone())
             .app_data(authorize.clone())
+            .app_data(jsonconfig.clone())
             .configure(init)
     })
     .listen(listener)?
