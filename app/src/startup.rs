@@ -1,4 +1,6 @@
+use actix_cors::Cors;
 use actix_web::dev::Server;
+use actix_web::http::header;
 use actix_web::{web, App, HttpServer};
 use actix_web_lab::middleware::from_fn;
 use actix_files;
@@ -35,6 +37,7 @@ impl Application {
             listener,
             db_conn,
             configuration.application.base_url,
+            configuration.application.frontend_url,
             configuration.application.hmac_secret,
         )
         .await?;
@@ -66,26 +69,39 @@ async fn run(
     listener: TcpListener,
     db_connection: DatabaseConnection,
     _base_url: String,
+    frontend_url: String,
     hmac_secret: Secret<String>,
 ) -> Result<Server, anyhow::Error> {
     let db_connection = web::Data::new(db_connection);
     let decoding_key = web::Data::new(DecodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
     let encoding_key = web::Data::new(EncodingKey::from_secret(hmac_secret.expose_secret().as_bytes()));
 
-    // Set up authorization
+    // Setup authorization
     let mut oso = Oso::new();
     oso.register_class(user::Model::get_polar_class_builder().name("User").build())?;
     oso.register_class(ApiClient::get_polar_class_builder().name("Client").build())?;
     oso.load_files(vec!["./app/polar/users_authorization.polar"])?;
-
     let authorize = web::Data::new(Authorize::new(oso));
 
+    // Setup json error responses to hide details
     let jsonconfig = web::JsonConfig::default().error_handler(|_err, _req| {
         e400("error", "Invalid client-side data (JSON)", "ValidationError")
     });
    
     let server = HttpServer::new(move || {
+        // Setup cors
+        let cors = Cors::default()
+        .allowed_origin(&frontend_url)
+        .allowed_methods(vec!["GET", "POST", "PATCH", "PUT", "DELETE"])
+        .allowed_headers(vec![
+            header::CONTENT_TYPE,
+            header::AUTHORIZATION,
+            header::ACCEPT,
+        ])
+        .supports_credentials();
+
         App::new()
+            .wrap(cors)
             .wrap(TracingLogger::default())
             .app_data(db_connection.clone())
             .app_data(encoding_key.clone())
