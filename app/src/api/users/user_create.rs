@@ -5,7 +5,7 @@ use crate::auth::ApiClient;
 use crate::db::user_db::*;
 use crate::auth::password::compute_password_hash_nonblocking;
 use crate::domain::response::UserResponse;
-use crate::domain::body::{CreateUserBody, CreateSecureUserModel};
+use crate::domain::request::CreateUserBody;
 use crate::error_responses::*;
 use crate::utils::DbErrbExt;
 
@@ -24,7 +24,7 @@ async fn create_user_handler(
         .await
         .map_err(|e| e500("error", "Unexpected server error occured", e))?;
 
-    let model = CreateSecureUserModel::from_user_model(body.user.clone(), password_hash);
+    let model = InsertUserModel::from_user_model(body.user.clone(), password_hash);
 
     if client.role.ne("admin") {
         return Err(e403("fail", "User does not have permission", "Forbidden"));

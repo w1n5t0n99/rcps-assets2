@@ -1,5 +1,5 @@
 pub mod response;
-pub mod body;
+pub mod request;
 
 #[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize)]
 pub enum RoleModel {

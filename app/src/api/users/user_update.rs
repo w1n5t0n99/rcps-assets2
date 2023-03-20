@@ -7,7 +7,7 @@ use crate::auth::ApiClient;
 use crate::auth::authorize::Authorize;
 use crate::db::user_db;
 use crate::domain::response::UserResponse;
-use crate::domain::body::UpdateUserBody;
+use crate::domain::request::UpdateUserBody;
 use crate::error_responses::*;
 
 

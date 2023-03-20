@@ -1,0 +1,14 @@
+[package]
+name = "domain"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+entity = { path = "../entity" }
+
+uuid = { version = "1", features = ["v4", "serde"] }
+secrecy = { version = "0.8", features = ["serde"] }
+serde = { version = "1.0.144", features = ["derive"] }
+chrono = "0.4.23"

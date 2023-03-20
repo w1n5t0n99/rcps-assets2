@@ -12,11 +12,10 @@ use crate::auth::jwt::{generate_jwt_from_user, generate_jwt_cookie};
 
 
 #[derive(Debug, Deserialize)]
-pub struct CredentialsModel {
+pub struct CredentialsBody {
     pub email: String,
     pub password: Secret<String>,
 }
-
 
 #[tracing::instrument(
     name = "login",
@@ -25,7 +24,7 @@ pub struct CredentialsModel {
 )]
 #[post("/login")]
 async fn login_user_handler(
-    body: web::Json<CredentialsModel>,
+    body: web::Json<CredentialsBody>,
     db_conn: web::Data<DbConn>,
     encoding_key: web::Data<EncodingKey>,
 ) -> Result<impl Responder, actix_web::Error> {

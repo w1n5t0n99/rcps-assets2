@@ -6,8 +6,22 @@ use secrecy::{Secret, ExposeSecret};
 use uuid::Uuid;
 
 use crate::domain::RoleModel;
-use crate::domain::body::{CreateSecureUserModel,UpdateUserModel};
+use crate::domain::request::{CreateUserModel, UpdateUserModel};
 
+
+#[derive(Debug, Clone)]
+pub struct InsertUserModel {
+    pub name: String,
+    pub email: String,
+    pub password_hash: Secret<String>,
+    pub role: RoleModel,
+}
+
+impl InsertUserModel {
+    pub fn from_user_model(model: CreateUserModel, password_hash: Secret<String>) -> Self {
+        InsertUserModel { name: model.name, email: model.email, password_hash, role: model.role }
+    }
+}
 
 impl From<RoleModel> for Role {
     fn from(r: RoleModel) -> Self {
@@ -60,7 +74,7 @@ pub async fn update_user_password<C: ConnectionTrait>(user_id: uuid::Uuid, passw
     Ok(())
 }
 
-pub async fn insert_user<C: ConnectionTrait>(model: CreateSecureUserModel, org_id: Uuid, db: &C) -> Result<user::Model, DbErr> {
+pub async fn insert_user<C: ConnectionTrait>(model: InsertUserModel, org_id: Uuid, db: &C) -> Result<user::Model, DbErr> {
     let user = user::ActiveModel {
         id: Set(Uuid::new_v4()),
         name: Set(model.name),
