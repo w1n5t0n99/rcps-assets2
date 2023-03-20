@@ -1,4 +1,7 @@
+mod api;
+
 use yew::prelude::*;
+
 
 #[function_component(App)]
 fn app() -> Html {
