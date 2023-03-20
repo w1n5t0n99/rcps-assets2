@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+domain = { path = "../domain" }
+
 chrono = { version = "0.4.24", features = ["serde"] }
 gloo = "0.8.0"
 reqwasm = "0.5.0"

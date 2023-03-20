@@ -1,9 +1,12 @@
-use super::types::{ErrorResponse, User, UserLoginResponse, UserResponse};
 use reqwasm::http;
 
+use super::types::{ErrorResponse};
 
-pub async fn api_register_user(user_data: &str) -> Result<User, String> {
-    let response = match http::Request::post("http://localhost:8000/api/auth/register")
+use domain::{request, response};
+
+
+pub async fn api_register_user(user_data: &str) -> Result<response::RegistrationResponse, String> {
+    let response = match http::Request::post("http://localhost:8000/api/account/register")
         .header("Content-Type", "application/json")
         .body(user_data)
         .send()
@@ -22,9 +25,9 @@ pub async fn api_register_user(user_data: &str) -> Result<User, String> {
         }
     }
 
-    let res_json = response.json::<UserResponse>().await;
+    let res_json = response.json::<response::RegistrationResponse>().await;
     match res_json {
-        Ok(data) => Ok(data.data.user),
+        Ok(data) => Ok(data),
         Err(_) => Err("Failed to parse response".to_string()),
     }
 }

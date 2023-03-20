@@ -6,9 +6,10 @@ use uuid::Uuid;
 use crate::auth::ApiClient;
 use crate::auth::authorize::Authorize;
 use crate::db::user_db;
-use crate::domain::response::UserResponse;
-use crate::domain::request::UpdateUserBody;
 use crate::error_responses::*;
+
+use domain::response::UserResponse;
+use domain::request::UpdateUserBody;
 
 
 #[tracing::instrument(name = "update user", skip_all, fields(user_id=tracing::field::Empty))]

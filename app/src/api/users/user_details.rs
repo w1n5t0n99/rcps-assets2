@@ -4,8 +4,9 @@ use sea_orm::DbConn;
 use crate::auth::ApiClient;
 use crate::auth::authorize::Authorize;
 use crate::db::user_db::*;
-use crate::domain::response::UserResponse;
 use crate::error_responses::{e500, e404};
+
+use domain::response::UserResponse;
 
 
 #[get("/me")]

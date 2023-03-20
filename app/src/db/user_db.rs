@@ -5,8 +5,8 @@ use ::entity::prelude::User;
 use secrecy::{Secret, ExposeSecret};
 use uuid::Uuid;
 
-use crate::domain::RoleModel;
-use crate::domain::request::{CreateUserModel, UpdateUserModel};
+use domain::RoleModel;
+use domain::request::{CreateUserModel, UpdateUserModel};
 
 
 #[derive(Debug, Clone)]
@@ -20,26 +20,6 @@ pub struct InsertUserModel {
 impl InsertUserModel {
     pub fn from_user_model(model: CreateUserModel, password_hash: Secret<String>) -> Self {
         InsertUserModel { name: model.name, email: model.email, password_hash, role: model.role }
-    }
-}
-
-impl From<RoleModel> for Role {
-    fn from(r: RoleModel) -> Self {
-        match r {
-            RoleModel::Admin => Self::Admin,
-            RoleModel::Manager => Self::Manager,
-            RoleModel::Member => Self::Member,
-        }
-    }
-}
-
-impl From<Role> for RoleModel {
-    fn from(r: Role) -> Self {
-        match r {
-            Role::Admin => Self::Admin,
-            Role::Manager => Self::Manager,
-            Role::Member => Self::Member,
-        }
     }
 }
 

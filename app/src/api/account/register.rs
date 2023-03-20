@@ -4,9 +4,10 @@ use sea_orm::DbConn;
 use crate::db::registration_db::*;
 use crate::db::user_db;
 use crate::auth::password::compute_password_hash_nonblocking;
-use crate::domain::response::RegistrationResponse;
-use crate::domain::request::RegistrationBody;
 use crate::error_responses::*;
+
+use domain::response::RegistrationResponse;
+use domain::request::RegistrationBody;
 
 
 #[tracing::instrument(name = "register", skip_all, fields(email=tracing::field::Empty))]

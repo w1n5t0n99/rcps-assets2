@@ -1,5 +1,6 @@
 use actix_web::{post, Responder, web, HttpResponse};
 use chrono::Duration;
+use domain::response::UserLoginResponse;
 use jsonwebtoken::EncodingKey;
 use sea_orm::DbConn;
 use secrecy::Secret;
@@ -50,5 +51,5 @@ async fn login_user_handler(
 
     Ok(HttpResponse::Ok()
         .cookie(token_cookie)
-        .json(json!({"status": "success", "token": token})))
+        .json(json!(UserLoginResponse::new("Success", token))))
 }

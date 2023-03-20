@@ -3,7 +3,8 @@ use secrecy::Secret;
 
 use super::organization_db;
 use super::user_db;
-use crate::domain::request::RegistrationBody;
+
+use domain::request::RegistrationBody;
 use ::entity::user;
 use ::entity::organization;
 

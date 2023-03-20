@@ -4,10 +4,11 @@ use sea_orm::DbConn;
 use crate::auth::ApiClient;
 use crate::db::user_db::*;
 use crate::auth::password::compute_password_hash_nonblocking;
-use crate::domain::response::UserResponse;
-use crate::domain::request::CreateUserBody;
 use crate::error_responses::*;
 use crate::utils::DbErrbExt;
+
+use domain::response::UserResponse;
+use domain::request::CreateUserBody;
 
 
 #[tracing::instrument(name = "create user", skip_all, fields(email=tracing::field::Empty))]

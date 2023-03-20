@@ -4,8 +4,9 @@ use sea_orm::DbConn;
 use crate::auth::authorize::Authorize;
 use crate::auth::ApiClient;
 use crate::db::user_db;
-use crate::domain::response::UsersResponse;
 use crate::error_responses::*;
+
+use domain::response::UsersResponse;
 
 
 #[tracing::instrument(name = "users get", skip_all)]

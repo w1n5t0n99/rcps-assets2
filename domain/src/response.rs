@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use serde::Deserialize;
 use serde::Serialize;
 use std::convert::From;
 
@@ -6,7 +7,7 @@ use entity::user;
 use entity::organization;
 use super::RoleModel;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FilteredUser {
     pub id: String,
     pub name: String,
@@ -31,7 +32,7 @@ impl From<user::Model> for FilteredUser {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UserResponse {
     pub status: String,
     pub user: FilteredUser,
@@ -46,7 +47,7 @@ impl UserResponse {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UsersResponse {
     pub status: String,
     pub users: Vec<FilteredUser>,
@@ -62,7 +63,7 @@ impl UsersResponse {
 }
 
 // May add data later that needs to be filtered out
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FilteredOrganization {
     pub id: String,
     pub name: String,
@@ -81,7 +82,7 @@ impl From<organization::Model> for FilteredOrganization {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RegistrationResponse {
     pub status: String,
     pub org: FilteredOrganization,
@@ -102,3 +103,23 @@ impl RegistrationResponse {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserLoginResponse {
+    pub status: String,
+    pub access_token: String,
+}
+
+impl UserLoginResponse {
+    pub fn new<S, T>(status: S, token: T) -> Self
+    where 
+        S: Into<String>,
+        T: Into<String>,
+    {
+        Self {
+            status: status.into(),
+            access_token: token.into(),
+        }
+    }
+}
+
