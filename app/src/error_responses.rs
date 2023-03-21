@@ -2,6 +2,7 @@ use actix_web::HttpResponse;
 use reqwest::StatusCode;
 use serde::Serialize;
 
+use domain::response::ErrorResponse;
 
 /*
 400 Bad Request – This means that client-side input fails validation.
@@ -13,11 +14,6 @@ use serde::Serialize;
 503 Service Unavailable – This indicates that something unexpected happened on server side (It can be anything like server overload, some parts of the system failed, etc.).
  */
 
-#[derive(Serialize)]
-struct ErrorResponse {
-    status: String,
-    message: String,
-}
 
 // Return an opaque 500 while preserving the error root's cause for logging.
 pub fn e500<T, S>(status: S, message: S, e: T) -> actix_web::Error

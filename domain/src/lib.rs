@@ -4,7 +4,7 @@ pub mod request;
 use entity::sea_orm_active_enums::Role;
 
 
-#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum RoleModel {
     Admin,
     Manager,

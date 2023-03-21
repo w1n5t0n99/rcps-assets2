@@ -7,7 +7,7 @@ use entity::user;
 use entity::organization;
 use super::RoleModel;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FilteredUser {
     pub id: String,
     pub name: String,
@@ -32,7 +32,7 @@ impl From<user::Model> for FilteredUser {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Clone, Deserialize, Debug)]
 pub struct UserResponse {
     pub status: String,
     pub user: FilteredUser,
@@ -123,3 +123,8 @@ impl UserLoginResponse {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ErrorResponse {
+    pub status: String,
+    pub message: String,
+}

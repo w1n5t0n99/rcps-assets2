@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 entity = { path = "../entity" }
 
-uuid = { version = "1", features = ["v4", "serde"] }
 secrecy = { version = "0.8", features = ["serde"] }
 serde = { version = "1.0.144", features = ["derive"] }
 chrono = "0.4.23"

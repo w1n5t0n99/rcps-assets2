@@ -31,7 +31,7 @@ async fn login_user_handler(
 ) -> Result<impl Responder, actix_web::Error> {
 
     tracing::Span::current().record("email", &tracing::field::display(&body.email));
-
+    //TODO: handle user that already has valid token
     let user = select_user_with_valid_credentials(body.email.as_str(), body.password.clone(), &db_conn)
         .await
         .map_err(|e|
