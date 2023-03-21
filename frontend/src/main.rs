@@ -1,6 +1,8 @@
 mod api;
 mod store;
 mod components;
+mod router;
+mod pages;
 
 use yew::prelude::*;
 
