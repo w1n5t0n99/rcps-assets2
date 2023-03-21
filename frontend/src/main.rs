@@ -1,4 +1,6 @@
 mod api;
+mod store;
+mod components;
 
 use yew::prelude::*;
 
