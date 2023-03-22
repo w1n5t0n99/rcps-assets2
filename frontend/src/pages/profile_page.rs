@@ -29,36 +29,6 @@ pub fn profile_page() -> Html {
                     Err(e) => {
                         set_page_loading(false, dispatch.clone());
 
-                        if e.contains("You are not logged in") {
-                            set_page_loading(true, dispatch.clone());
-                            let token_response = api_refresh_access_token().await;
-
-                            match token_response {
-                                Ok(_) => {
-                                    set_page_loading(true, dispatch.clone());
-                                    let user_response = api_user_info().await;
-
-                                    match user_response {
-                                        Ok(user) => {
-                                            set_page_loading(false, dispatch.clone());
-                                            set_auth_user(Some(user), dispatch.clone());
-                                        }
-                                        Err(e) => {
-                                            set_page_loading(false, dispatch.clone());
-                                            set_show_alert(e.to_string(), dispatch.clone());
-                                            navigator.push(&router::Route::LoginPage);
-                                        }
-                                    }
-                                }
-                                Err(e) => {
-                                    set_page_loading(false, dispatch.clone());
-                                    set_show_alert(e.to_string(), dispatch.clone());
-                                    navigator.push(&router::Route::LoginPage);
-                                }
-                            }
-
-                            return;
-                        }
                         set_show_alert(e.to_string(), dispatch);
                         navigator.push(&router::Route::LoginPage);
                     }

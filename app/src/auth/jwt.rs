@@ -61,5 +61,6 @@ pub fn generate_jwt_cookie<'c>(token: String, duration: Duration) -> Cookie<'c> 
         .path("/")
         .max_age(cookie_dur)
         .http_only(true)
+        .same_site(actix_web::cookie::SameSite::None)
         .finish()
 }

@@ -1,22 +1,15 @@
 use actix_web::{post, Responder, web, HttpResponse};
 use chrono::Duration;
+use domain::request::CredentialsBody;
 use domain::response::UserLoginResponse;
 use jsonwebtoken::EncodingKey;
 use sea_orm::DbConn;
-use secrecy::Secret;
-use serde::Deserialize;
 use serde_json::json;
 
 use crate::error_responses::*;
 use crate::auth::password::{select_user_with_valid_credentials, PasswordError};
 use crate::auth::jwt::{generate_jwt_from_user, generate_jwt_cookie};
 
-
-#[derive(Debug, Deserialize)]
-pub struct CredentialsBody {
-    pub email: String,
-    pub password: Secret<String>,
-}
 
 #[tracing::instrument(
     name = "login",

@@ -1,5 +1,5 @@
 use secrecy::Secret;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::RoleModel;
 
@@ -35,5 +35,11 @@ pub struct RegistrationBody {
     pub email: String,
     pub password: Secret<String>,
     pub organization: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct CredentialsBody {
+    pub email: String,
+    pub password: Secret<String>,
 }
 

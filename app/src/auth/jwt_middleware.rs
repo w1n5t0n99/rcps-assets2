@@ -25,7 +25,7 @@ pub async fn reject_invalid_jwt(
                 .get(http::header::AUTHORIZATION)
                 .map(|h| h.to_str().unwrap().split_at(7).1.to_string())
         })
-        .ok_or_else(|| e401("fail", "You are not logged in, please provide token", "AuthError"))?;
+        .ok_or_else(|| e401("fail", "You are not logged in, please provide token", "AuthError - Token not found"))?;
     
     let claims = decode::<TokenClaims>(
             &token,
