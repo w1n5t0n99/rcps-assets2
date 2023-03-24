@@ -140,3 +140,4 @@ fn init(cfg: &mut web::ServiceConfig) {
 
     cfg.service(scope); 
 }
+

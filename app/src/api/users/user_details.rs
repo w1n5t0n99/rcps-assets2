@@ -9,6 +9,7 @@ use crate::error_responses::{e500, e404};
 use domain::response::UserResponse;
 
 
+#[tracing::instrument(name = "current user details", skip_all, fields(user_id = client.user_id.to_string()))]
 #[get("/me")]
 async fn get_user_details_handler(
     client: web::ReqData<ApiClient>,
