@@ -23,6 +23,7 @@ impl InsertRegistrationModel {
     }
 }
 
+#[tracing::instrument(name = "db - insert registration", skip_all)]
 pub async fn insert_registration_data(model: InsertRegistrationModel, db: &DbConn) -> Result<(organization::Model, user::Model), DbErr> {
     let transaction = db.begin().await?;
 

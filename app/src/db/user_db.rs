@@ -23,6 +23,7 @@ impl InsertUserModel {
     }
 }
 
+#[tracing::instrument(name = "db - select user from email", skip_all)]
 pub async fn select_user_from_email<C: ConnectionTrait>(email: &str, db: &C) -> Result<Option<user::Model>, DbErr> {
     User::find()
         .filter(user::Column::Email.eq(email))
@@ -30,12 +31,14 @@ pub async fn select_user_from_email<C: ConnectionTrait>(email: &str, db: &C) -> 
         .await
 }
 
+#[tracing::instrument(name = "db - select user from id", skip_all)]
 pub async fn select_user_from_id<C: ConnectionTrait>(user_id: Uuid, db: &C) -> Result<Option<user::Model>, DbErr> {
     User::find_by_id(user_id)
         .one(db)
         .await
 }
 
+#[tracing::instrument(name = "db - select users", skip_all)]
 pub async fn select_users<C: ConnectionTrait>(org_id: Uuid, db: &C) -> Result<Vec<user::Model>, DbErr> {
     User::find()
         .filter(user::Column::OrganizationId.eq(org_id))
@@ -43,6 +46,7 @@ pub async fn select_users<C: ConnectionTrait>(org_id: Uuid, db: &C) -> Result<Ve
         .await
 }
 
+#[tracing::instrument(name = "db - update user password", skip_all)]
 pub async fn update_user_password<C: ConnectionTrait>(user_id: uuid::Uuid, password_hash: Secret<String>, db: &C) -> Result<(), DbErr> {
     let user = User::find_by_id(user_id).one(db).await?;
     let mut user: user::ActiveModel = user.unwrap().into();
@@ -54,6 +58,7 @@ pub async fn update_user_password<C: ConnectionTrait>(user_id: uuid::Uuid, passw
     Ok(())
 }
 
+#[tracing::instrument(name = "db - insert user", skip_all)]
 pub async fn insert_user<C: ConnectionTrait>(model: InsertUserModel, org_id: Uuid, db: &C) -> Result<user::Model, DbErr> {
     let user = user::ActiveModel {
         id: Set(Uuid::new_v4()),
@@ -71,6 +76,7 @@ pub async fn insert_user<C: ConnectionTrait>(model: InsertUserModel, org_id: Uui
     user.insert(db).await
 }
 
+#[tracing::instrument(name = "db - insert owner", skip_all)]
 pub async fn insert_owner<C: ConnectionTrait>(name: String, email: String, password_hash: Secret<String>, org_id: Uuid, db: &C) -> Result<user::Model, DbErr> {
     let user = user::ActiveModel {
         id: Set(Uuid::new_v4()),
@@ -88,6 +94,7 @@ pub async fn insert_owner<C: ConnectionTrait>(name: String, email: String, passw
     user.insert(db).await
 }
 
+#[tracing::instrument(name = "db - update user", skip_all)]
 pub async fn update_user<C: ConnectionTrait>(user: user::Model, model: UpdateUserModel, db: &C) -> Result<user::Model, DbErr> {
     let mut user: user::ActiveModel = user.into();
 
@@ -103,6 +110,7 @@ pub async fn update_user<C: ConnectionTrait>(user: user::Model, model: UpdateUse
     user
 }
 
+#[tracing::instrument(name = "db - delete user", skip_all)]
 pub async fn delete_user<C: ConnectionTrait>(user: user::Model, db: &C) -> Result<DeleteResult, DbErr> {
     user.delete(db).await
 }

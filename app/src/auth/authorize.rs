@@ -13,6 +13,7 @@ impl Authorize {
         }
     }
 
+    #[tracing::instrument(name = "authorization - is allowed", skip_all)]
     pub fn is_allowed<Actor, Action, Resource>(&self, actor: Actor, action: Action, resource: Resource) -> Result<bool, actix_web::Error>
     where 
         Actor: ToPolar,
@@ -25,6 +26,7 @@ impl Authorize {
         Ok(res)
     }
 
+    #[tracing::instrument(name = "authorization - is allowed", skip_all)]
     pub fn is_allowed_or_forbidden<Actor, Action, Resource>(&self, actor: Actor, action: Action, resource: Resource) -> Result<(), actix_web::Error>
     where 
         Actor: ToPolar,
@@ -41,6 +43,7 @@ impl Authorize {
         Ok(())
     }
 
+    #[tracing::instrument(name = "authorization - is allowed", skip_all)]
     pub fn is_allowed_or_not_found<Actor, Action, Resource>(&self, actor: Actor, action: Action, resource: Resource) -> Result<(), actix_web::Error>
     where 
         Actor: ToPolar,

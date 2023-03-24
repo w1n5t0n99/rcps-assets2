@@ -11,14 +11,13 @@ use domain::response::UserResponse;
 use domain::request::CreateUserBody;
 
 
-#[tracing::instrument(name = "create user", skip_all, fields(email=tracing::field::Empty))]
+#[tracing::instrument(name = "create user", skip_all, fields(email=&body.user.email))]
 #[post("")]
 async fn create_user_handler(
     client: web::ReqData<ApiClient>,
     body: web::Json<CreateUserBody>,
     db_conn: web::Data<DbConn>,
 ) -> Result<impl Responder, actix_web::Error> {
-    tracing::Span::current().record("email", &tracing::field::display(&body.user.email));
     let db_conn: &DbConn = &*db_conn;
 
     let password_hash = compute_password_hash_nonblocking(body.user.password.clone())

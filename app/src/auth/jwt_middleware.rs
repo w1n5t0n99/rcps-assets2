@@ -9,11 +9,8 @@ use crate::error_responses::{e500, e401};
 use super::ApiClient;
 
 
-pub async fn reject_invalid_jwt(
-    req: ServiceRequest,
-    next: Next<impl MessageBody>,
-) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
-
+#[tracing::instrument(name = "authentication - retrieve client from token", skip_all)]
+fn retrieve_client_from_token(req: &ServiceRequest) -> Result<ApiClient, actix_web::Error> {
     let decoding_key = req.app_data::<web::Data<DecodingKey>>()
         .ok_or_else(|| e500("error", "Unexpected server error occured", "AuthError"))?;
 
@@ -35,12 +32,20 @@ pub async fn reject_invalid_jwt(
         .map_err(|e| e401("fail", "Invalid token", e))
         .map(|t| t.claims)?;
 
-    // TODO: insert client struct instead of plain uuid
     let user_id = uuid::Uuid::parse_str(claims.sub.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
     let org_id = uuid::Uuid::parse_str(claims.org.as_str()).map_err(|e| e500("error", "Unexpected server error occured", e))?;
     let role = claims.rol;
 
     let jwt_data = ApiClient { user_id, org_id, role };
+    Ok(jwt_data)
+}
+
+pub async fn reject_invalid_jwt(
+    req: ServiceRequest,
+    next: Next<impl MessageBody>,
+) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
+
+    let jwt_data = retrieve_client_from_token(&req)?;
     req.extensions_mut().insert::<ApiClient>(jwt_data);
 
     next.call(req).await
