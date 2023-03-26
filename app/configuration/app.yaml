@@ -1,9 +1,10 @@
 application:
   port: 8000
-  host: 127.0.0.1
+  host: "127.0.0.1"
   hmac_secret: "super-long-and-secret-random-key-needed-to-verify-message-integrity"
   base_url: "http://127.0.0.1"
   frontend_url: "http://127.0.0.1:3000"
+  aspecto_api_key: "6ff4c22a-fd6b-4603-b6da-be23aa52890f"
 database:
   host: "127.0.0.1"
   port: 5432

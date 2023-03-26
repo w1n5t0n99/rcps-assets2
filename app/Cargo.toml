@@ -44,5 +44,8 @@ validator = { version = "0.16", features = ["derive"] }
 chrono = "0.4.23"
 jsonwebtoken = "8.2.0"
 oso = { version = "0.26", features = ["uuid-10"] }
-opentelemetry-jaeger = { version = "0.17", features = ["rt-tokio-current-thread"] }
+#opentelemetry-jaeger = { version = "0.17", features = ["rt-tokio-current-thread"] }
 opentelemetry = { version = "0.18", features = ["rt-tokio-current-thread"] }
+opentelemetry-otlp = { version = "0.11.0", features = ["reqwest-client", "reqwest-rustls", "http-proto"] }
+opentelemetry-semantic-conventions = "0.9.0"
+

@@ -18,6 +18,7 @@ pub struct ApplicationSettings {
     pub base_url: String,
     pub frontend_url: String,
     pub hmac_secret: Secret<String>,
+    pub aspecto_api_key: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Clone, Debug)]

@@ -88,6 +88,7 @@ async fn run(
         e400("error", "Invalid client-side data (JSON)", "ValidationError")
     });
    
+   // Setup Server
     let server = HttpServer::new(move || {
         // Setup cors
         let cors = Cors::default()
@@ -108,14 +109,14 @@ async fn run(
             .app_data(decoding_key.clone())
             .app_data(authorize.clone())
             .app_data(jsonconfig.clone())
-            .configure(init)
+            .configure(configure_api_routes)
     })
     .listen(listener)?
     .run();
     Ok(server)
 }
 
-fn init(cfg: &mut web::ServiceConfig) {
+fn configure_api_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(actix_files::Files::new("/static", "./app/static"));
 
     let account_scope = web::scope("/account")

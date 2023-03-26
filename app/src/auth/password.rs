@@ -105,6 +105,7 @@ pub async fn change_password(
     Ok(())
 }
 
+#[tracing::instrument(name = "Compute password hash nonblocking", skip(password))]
 pub async fn compute_password_hash_nonblocking(password: Secret<String>) -> Result<Secret<String>, PasswordError> {
     let password_hash = spawn_blocking_with_tracing(move || compute_password_hash(password))
         .await
